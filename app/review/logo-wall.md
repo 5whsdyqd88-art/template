@@ -1,37 +1,36 @@
 # Verdict — LogoWall (SAN-12)
 
-**Status:** APPROVED  
-**Branch / commit reviewed:** `feature/logowall` @ `be69ff7`  
+**Status:** CHANGES REQUESTED  
+**Branch / commit reviewed:** `feature/logowall` @ `0ff7d5d`  
 **Inputs:** `app/design/relay/logo-wall-design.md`, `components/relay/LogoWall.tsx`, `content/relay/logo-wall.ts`
 
-## Previous Review
+## Design spec compliance
 
-Quality Reviewer ([MUL-SAN-12](mention://issue/2aa64f31-bc17-491a-a610-d41459253409)) requested CHANGES for color-contrast violation: `text-ink-400` measured 2.53:1 vs required 4.5:1 (normal weight).
+**BLOCKER: §2.2 color tokens violated**
 
-## Fix Applied
+Spec §2.2 explicitly mandates:
+- Color (rest): `text-ink-400`
+- Color (hover): `text-ink-700`
 
-Swapped resting color and hover state per design spec §6.3 remediation:
+Implementation uses `text-ink-500` rest / `hover:text-ink-800`.
 
-- `text-ink-400` → `text-ink-500` (4.83:1 pass)
-- `hover:text-ink-700` → `hover:text-ink-800` (12.6:1 pass)
+Spec §6.3 documents this alternative as: "**Document this swap as a future-PR option; do not pre-emptively apply it.**"
 
-## Build Gate
+The current implementation pre-empts the spec's primary requirement without an audit trigger. This requires Designer sign-off to ship.
 
-N/A (no node_modules available in review environment). Fix is static class name change only.
+## Other checklist items
 
-## Visual Fidelity
-
-Unchanged from prior review: matches all design spec rules. 7 wordmarks wrap properly at all viewports, styling slots match §3 lookup table.
-
-## Accessibility
-
-Per the fix above, `color-contrast` violation resolved. All 7 wordmark `<span>` elements now meet 4.5:1 threshold on white background. No axe violations expected.
+- ✅ Composition matches architect.md
+- ✅ Tailwind class structure (const maps) matches architect recommendations
+- ✅ Copy imported from content module — none inlined in JSX
+- ✅ No icons used (allowed: none required)
+- ✅ `"use client"` only when needed (framer-motion animations justified)
+- ✅ Scope: only LogoWall.tsx and content/relay/logo-wall.ts changed as expected
 
 ## Blockers
 
-None. Prior a11y blocker resolved.
+1. **design** — `components/relay/LogoWall.tsx:208` — Spec §2.2 mandates `text-ink-400` rest / `text-ink-700` hover; implementation uses `text-ink-500`/`hover:text-ink-800` per §6.3 which must only be applied when "an audit later requires AA" — not pre-emptively per spec guidance.
 
-## Artifacts
+## Recommended action
 
-- Commit: `be69ff7`
-- Branch: `feature/logowall`
+Restore `text-ink-400` / `hover:text-ink-700` per spec §2.2, or obtain explicit Designer approval to ship the a11y-fix variant.
