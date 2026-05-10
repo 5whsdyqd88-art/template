@@ -40,7 +40,8 @@ relay.send(
 } as const;
 
 function SyntaxHighlight({ code }: { code: string }) {
-  if (useReducedMotion()) {
+  const reducedMotion = useReducedMotion();
+  if (reducedMotion) {
     return <pre className="font-mono text-sm text-ink-200">{code}</pre>;
   }
 
