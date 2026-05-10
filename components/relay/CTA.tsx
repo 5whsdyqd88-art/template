@@ -82,7 +82,7 @@ function Content() {
     <>
       <h2
         id="cta-headline"
-        className="text-3xl mb-5 text-balance font-sans font-semibold tracking-[-0.01em] leading-[1.15] text-white md:display-md"
+        className="text-3xl mb-5 text-balance font-sans font-semibold tracking-[-0.01em] leading-[1.15] text-white md:text-display-md"
       >
         {ctaContent.headline}
       </h2>
