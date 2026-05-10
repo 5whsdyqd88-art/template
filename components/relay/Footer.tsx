@@ -132,8 +132,6 @@ function BottomBar() {
 }
 
 export default function Footer() {
-  const shouldReduceMotion = useReducedMotion();
-
   return (
     <footer className="min-h-[260px] flex items-center justify-center text-ink-400 text-sm bg-ink-900 text-ink-300">
       <div className="max-w-7xl px-4 sm:px-6 lg:px-8 py-24">
