@@ -1,41 +1,28 @@
 export const codeMockupContent = {
-  eyebrow: "DEVELOPERS",
-  headline: "Send your first message in five lines.",
-  body: "Authenticate, build a payload, hit one endpoint. The same call shape spans SMS, WhatsApp, and voice — pick any language.",
-  docsLink: "Read the docs",
+  eyebrow: 'DEVELOPERS',
+  headline: 'Integrate Relay in five lines',
+  body: 'Drop-in replacement for your existing HTTP client. Works with Node.js, Python, or curl. No server changes required.',
+  docsLink: 'Read the docs →',
+  copyLabel: 'Copy code',
   tabs: {
-    node: "Node.js",
-    python: "Python",
-    curl: "curl",
-  },
-  copyButton: {
-    label: "Copy code sample",
-    copied: "Copied",
-  },
-  samples: {
-    node: `import { Relay } from "@relay/sdk";
-const relay = new Relay(process.env.RELAY_API_KEY);
-await relay.messages.create({
-  to: "+14155550182", from: "+14155550199", channel: "sms", body: "Your code is 482910",
-});`,
-    python: `import os
-from relay import Client
+    node: { label: 'Node.js', sample: `const relay = require('relay-sdk');
 
-relay = Client(api_key=os.environ["RELAY_API_KEY"])
-relay.messages.create(
-    to="+14155550182",
-    from_="+14155550199",
-    channel="sms",
-    body="Your code is 482910",
-)`,
-    curl: `curl -X POST https://api.relay.dev/v1/messages \\
-  -H "Authorization: Bearer $RELAY_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "to": "+14155550182",
-    "from": "+14155550199",
-    "channel": "sms",
-    "body": "Your code is 482910"
-  }'`,
-  },
+relay.send({
+  to: '+1234567890',
+  from: '+0987654321',
+  body: 'Hello from Relay!',
+});` },
+    python: { label: 'Python', sample: `import relay
+
+relay.send(
+  to="+1234567890",
+  from="+0987654321",
+  body="Hello from Relay!"
+)` },
+    curl: { label: 'curl', sample: `curl https://api.relay.com/v1/messages \\
+  -u your_api_key: \\
+  -d from="+1234567890" \\
+  -d to="+0987654321" \\
+  -d body="Hello from Relay!"` }
+  }
 } as const;
