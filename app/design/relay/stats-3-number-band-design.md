@@ -32,7 +32,7 @@ Content module: `app/content/relay/stats.ts`
 |---|---|---|
 | Number | `text-display-lg md:text-display-xl font-bold text-ink-900 tabular-nums` | Animated counter; see §4 |
 | Label | `mt-3 text-sm font-semibold text-ink-600 uppercase tracking-[0.14em]` | All-caps with 0.14em tracking |
-| Detail | `mt-2 text-[15px] text-ink-400 md:max-w-[30ch]` | 15px body, max 30ch at md+ |
+| Detail | `mt-2 text-[15px] text-ink-600 md:max-w-[30ch]` | 15px body, max 30ch at md+ |
 
 ---
 

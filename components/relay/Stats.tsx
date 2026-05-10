@@ -82,7 +82,7 @@ export default function Stats() {
               <p className="mt-3 text-sm font-semibold text-ink-600 uppercase tracking-[0.14em]">
                 {stat.label}
               </p>
-              <p className="mt-2 text-[15px] text-ink-400 md:max-w-[30ch]">{stat.detail}</p>
+              <p className="mt-2 text-[15px] text-ink-600 md:max-w-[30ch]">{stat.detail}</p>
             </div>
           ))}
         </motion.div>
