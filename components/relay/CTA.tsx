@@ -9,11 +9,6 @@ export default function CTA() {
   const shouldReduceMotion = useReducedMotion();
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const variants = {
-    initial: { opacity: 0, y: 24 },
-    animate: { opacity: 1, y: 0 },
-  };
-
   const transition = {
     duration: 0.6,
     ease: [0.0, 0.0, 0.2, 1] as const,
@@ -63,9 +58,8 @@ export default function CTA() {
         ) : (
           <motion.div
             ref={contentRef}
-            variants={variants}
-            initial="initial"
-            whileInView="animate"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={transition}
           >
@@ -82,7 +76,7 @@ function Content() {
     <>
       <h2
         id="cta-headline"
-        className="text-3xl mb-5 text-balance font-sans font-semibold tracking-[-0.01em] leading-[1.15] text-white md:display-md"
+        className="text-3xl mb-5 text-balance font-sans font-semibold tracking-[-0.01em] leading-[1.15] text-white md:text-display-md"
       >
         {ctaContent.headline}
       </h2>
