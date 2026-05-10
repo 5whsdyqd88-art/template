@@ -30,7 +30,7 @@ const trackingMap: Record<string, string> = {
 function Wordmark({ wordmark }: { wordmark: WordmarkData }) {
   const { label, weightHint, trackingHint, italic, mono } = wordmark
 
-  const baseClasses = "text-ink-500 text-lg md:text-xl transition-colors duration-fast ease-out-soft"
+  const baseClasses = "text-ink-400 text-lg md:text-xl transition-colors duration-fast ease-out-soft"
   const weightClass = weightMap[weightHint] || "font-medium"
   const trackingClass = trackingMap[trackingHint] || "tracking-normal"
   const italicClass = italic ? "italic" : ""
@@ -38,7 +38,7 @@ function Wordmark({ wordmark }: { wordmark: WordmarkData }) {
 
   return (
     <li>
-      <span className={`${baseClasses} ${weightClass} ${trackingClass} ${italicClass} ${monoClass} hover:text-ink-800`}>
+      <span className={`${baseClasses} ${weightClass} ${trackingClass} ${italicClass} ${monoClass} hover:text-ink-700`}>
         {label}
       </span>
     </li>
