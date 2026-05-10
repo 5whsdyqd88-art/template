@@ -63,6 +63,7 @@ export default function CTA() {
         ) : (
           <motion.div
             ref={contentRef}
+            variants={variants}
             initial="initial"
             whileInView="animate"
             viewport={{ once: true, amount: 0.3 }}
@@ -81,7 +82,7 @@ function Content() {
     <>
       <h2
         id="cta-headline"
-        className="display-md mb-5 text-balance font-sans font-semibold tracking-[-0.01em] leading-[1.15] text-white sm:text-3xl"
+        className="text-3xl mb-5 text-balance font-sans font-semibold tracking-[-0.01em] leading-[1.15] text-white md:display-md"
       >
         {ctaContent.headline}
       </h2>
@@ -91,7 +92,7 @@ function Content() {
       >
         {ctaContent.subhead}
       </p>
-      <div className="mt-10 flex flex-col gap-3 justify-center items-stretch sm:items-center sm:flex-row md:gap-4 sm:mt-8">
+      <div className="mt-8 flex flex-col gap-3 justify-center items-stretch sm:items-center sm:flex-row md:mt-10 md:gap-4">
         <a
           href="#start"
           className="h-14 w-full rounded-full bg-white px-7 py-4 text-base font-semibold leading-none text-primary-700 inline-flex items-center justify-center gap-2 shadow-cta hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-8px_rgba(91,108,255,0.55)] active:translate-y-0 active:scale-[0.98] transition duration-300 ease-out-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600 sm:w-auto"
