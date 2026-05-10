@@ -1,61 +1,63 @@
-# QR Verdict — CTA (gradient strip) · SAN-158
+# QR Verdict — CTA (gradient strip) · SAN-183
 
 **Status:** CHANGES REQUESTED
 
-Reviewed `components/relay/CTA.tsx` against `app/design/relay/cta-design.md` on `feature/cta` (built and served locally on :4500 from a fresh `next build`; the dev preview on :3011 was wedged on a stale build during this run, blocking the canonical preview).
+Reviewed `components/relay/CTA.tsx` against `app/design/relay/cta-design.md` on `feature/cta` (HEAD = `802f203`). Visual + a11y captures taken from a local `next dev` on 127.0.0.1:4501 because (a) `npm run build` fails on this branch and (b) the dev preview at :3011 is wedged on the pre-CTA scaffold (the `[CTA · RELAY-9 · awaiting orchestrator]` placeholder is still being served), almost certainly because `dev_deployer.py` cannot land a green build.
 
 ## Gates
 
 | Gate | Result |
 |---|---|
-| `npm run build` | PASS — clean, 0 errors, 0 warnings |
+| `npm run build` | **FAIL** — ESLint blocker in `components/relay/Footer.tsx:135` |
 | axe-core (WCAG 2.0/2.1 A + AA, scoped to `#cta`) | PASS — 0 violations on desktop / tablet / mobile |
-| Lighthouse perf — desktop | PASS — perf 1.0, LCP 46ms, CLS 0, TBT 0 |
-| Lighthouse perf — mobile (page-level) | LCP 2557ms (3G sim) — borderline. Not driven by `#cta`; LCP element resolves to the LogoWall placeholder. Not a CTA-section blocker. |
+| Visual fidelity vs `cta-design.md` | PASS — every measured token matches |
+| Lighthouse perf (LCP / CLS / INP) | NOT RUN — requires a production build, which is broken |
 
-## Visual blocker
+## Blocker
 
-### desktop / tablet — headline never reaches `display-md`
+### build / lint — `Footer.tsx` unused variable breaks the gate
 
-- **Where:** `components/relay/CTA.tsx:85` — `<h2>` className includes `md:display-md`.
-- **Measured (computed `font-size` via Playwright):**
-  - mobile (390): 30px ✓ (matches `text-3xl`)
-  - tablet (768): **30px** — should be **36px**
-  - desktop (1280): **30px** — should be **36px**
-- **Design rule violated:**
-  - `cta-design.md` §1, table "Responsive breakpoints" — row `md+ (≥768)` requires `Headline size: display-md (2.25rem)`.
-  - `cta-design.md` §2, type table — `Headline | display-md desktop · text-3xl mobile`.
-- **Root cause:** `display-md` is registered under `theme.extend.fontSize` in `tailwind.config.ts:43`, so the generated utility is `text-display-md`, not `display-md`. The class `md:display-md` does not compile to anything, so the headline stays at `text-3xl` at every breakpoint.
-- **Fix:** change `md:display-md` to `md:text-display-md` on the `<h2>` className. Verify by reloading at ≥768px width — headline `font-size` should compute to 36px and `letter-spacing` to -0.36px.
-- **Evidence:** `/tmp/qr-cta/cta_desktop.png`, `/tmp/qr-cta/cta_tablet.png`, `/tmp/qr-cta/cta_mobile.png`; computed styles in `/tmp/qr-cta/axe-results.json` (`styles.headline.font.size`).
+- **Where:** `components/relay/Footer.tsx:135` — `const shouldReduceMotion = useReducedMotion();` is declared and never read.
+- **Build error:** `Error: 'shouldReduceMotion' is assigned a value but never used. @typescript-eslint/no-unused-vars`
+- **Design rule violated:** Project gate, `cta-design.md` §10 — "Component file: `components/relay/CTA.tsx` … `npx next build` must pass." The Engineering-standards build gate applies branch-wide; a feature branch that does not green-build cannot be QR-approved, even if the Footer is technically out-of-section, because `dev_deployer.py` won't FF onto `dev` and the production deploy path is blocked.
+- **Downstream symptom:** `http://vlad.tail5272c5.ts.net:3011/` still renders the scaffold — the CTA section there is the `[CTA · RELAY-9 · awaiting orchestrator]` placeholder, not the implemented component. This is what tipped me off that the build is currently failing on the branch.
+- **Fix:** either remove the unused declaration, or actually use `shouldReduceMotion` to gate Footer animation. Either is fine for QR — match what the rest of the file does. Then re-run `npm run build`; it should reach "Generating static pages" and exit 0.
+
+## What passed (visual + a11y on `#cta`, captured locally)
+
+Measurements (Playwright `getComputedStyle`) match the spec across all three viewports:
+
+| Property | Mobile (390) | Tablet (768) | Desktop (1280) | Spec | Result |
+|---|---|---|---|---|---|
+| Headline `font-size` | 30px | 36px | 36px | `text-3xl` mobile / `display-md` md+ | ✓ |
+| Headline weight / line-height / tracking | 600 / 1.15 / -0.3px | 600 / 1.15 / -0.36px | 600 / 1.15 / -0.36px | §2 type table | ✓ |
+| Subhead `font-size` | 18px | 20px | 20px | `text-lg` mobile / `text-xl` md+ | ✓ |
+| Section padding (top/right) | 80px / 24px | 96px / 32px | 96px / 32px | §1 + §4 | ✓ |
+| CTA height | 56px | 56px | 56px | §5 (`h-14`) | ✓ |
+| CTA primary width | 342 (full-col) | auto (205) | auto (205) | §1 mobile `w-full`, sm+ `w-auto` | ✓ |
+| CTA secondary width | 342 (full-col) | auto (156) | auto (156) | §1 mobile `w-full`, sm+ `w-auto` | ✓ |
+| Primary CTA color | white bg / `primary-700` text | same | same | §3 surface table (rgb(59,70,184) ≈ primary-700) | ✓ |
+| Decorative SVG layer order (back → front) | glow rect → Path 2 → Path 1 | same | same | §6 | ✓ |
+| Section landmark + accessible name | `<section id=cta aria-labelledby=cta-headline>` + `<h2 id=cta-headline>` | same | same | §8 | ✓ |
+| `ArrowRight` icon `aria-hidden` | yes | yes | yes | §8 / §9 | ✓ |
+| Reduced-motion branch via `useReducedMotion()` | present (`CTA.tsx:9,54-68`) | — | — | §7 | ✓ |
+| axe-core violations | 0 | 0 | 0 | §8 | ✓ |
+
+Evidence: `/tmp/qr-cta-3011/cta_{desktop,tablet,mobile}.png`, `/tmp/qr-cta-3011/full_{desktop,tablet,mobile}.png`, computed styles + axe results in `/tmp/qr-cta-3011/axe-results.json`.
 
 ## Non-blocking observations (informational, do NOT need to be fixed for approval)
 
-1. **Subhead opacity 0.88 vs spec contrast-table value 0.90.** §3 lists the subhead foreground as `text-white/90`; the implementation uses inline `style={{ opacity: 0.88 }}` (`CTA.tsx:91`). Effective contrast over `primary-600` is ~4.79:1 — still passes WCAG AA body (4.5:1) and axe is clean. Inside the spec's stated tolerance ("do not go below 4.5:1"). Leave as-is unless you're already in the file.
-2. **SVG attribute casing.** `stroke-opacity` and `stroke-width` are kebab-case in JSX (`CTA.tsx:48-58`). React still renders them, but emits a dev-mode console warning. No production impact; convert to `strokeOpacity` / `strokeWidth` next time you touch the file.
-3. **Decorative SVG layer order.** Spec §6 calls for back→front: glow rect → Path 2 → Path 1. Implementation order matches. ✓
-
-## What passed
-
-- Section structure: `<section id="cta" aria-labelledby="cta-headline">` ✓
-- Background gradient `bg-gradient-to-br from-primary-700 via-primary-600 to-primary-500` ✓
-- Section padding: 80/24px mobile, 96/32px md+ ✓ (computed)
-- Inner wrapper `mx-auto max-w-3xl text-center` ✓
-- Headline color `#fff`, weight 600, line-height 1.15, tracking -0.01em ✓ (only the size step is broken)
-- Subhead `text-lg` (18px) mobile / `text-xl` (20px) md+ ✓
-- CTA shape, size, spacing, color, focus ring, mobile full-width ✓
-- Decorative SVG: `aria-hidden`, full-bleed clipped by `overflow-hidden`, two curves + radial glow ✓
-- Reduced-motion branch present via `useReducedMotion()` ✓
-- Headline carries the section's accessible name; ArrowRight is `aria-hidden` ✓
+1. **Subhead opacity 0.88 vs spec value 0.90.** §3 specifies the subhead foreground as `text-white/90`; the implementation uses inline `style={{ opacity: 0.88 }}` (`CTA.tsx:85`). Effective contrast over `primary-600` is ~4.79:1 — passes WCAG AA body (4.5:1) and axe is clean. Inside the spec's stated tolerance ("do not go below 4.5:1"). Leave as-is unless you're already in the file. (Carried over from SAN-158.)
+2. **SVG attribute casing.** `stroke-opacity` and `stroke-width` are kebab-case in JSX (`CTA.tsx:40-49`). React renders them but emits a dev-mode console warning. No production impact; convert to `strokeOpacity` / `strokeWidth` next time the file is touched. (Carried over from SAN-158.)
+3. **Lighthouse not gated this round.** Without a green production build I can't run the canonical Lighthouse pass. The previous QR (SAN-158) recorded perf 1.0 / LCP 46ms / CLS 0 for this section on a clean build, and nothing in `CTA.tsx` has changed since (`802f203` is review-only), so once the Footer gate clears, the perf numbers should hold.
 
 ## How to verify after fix
 
 ```
 cd /home/vlad/fleet/smoketest/repo
-git checkout feature/cta
-npm run build                                  # must stay clean
-# spin up a local preview (dev :3011 was wedged at review time):
-npx next start -p 4500 -H 127.0.0.1 &
-# headline at desktop should now compute to 36px
-node -e 'fetch("http://127.0.0.1:4500/").then(r=>r.text()).then(t=>console.log(/md:text-display-md/.test(t)?"class present":"MISSING"))'
+git checkout feature/cta && git pull --ff-only
+npm run build                              # must exit 0
+# then either watch :3011 (dev_deployer FF), or:
+nohup npx next start -p 4500 -H 127.0.0.1 > /tmp/relay-4500.log 2>&1 &
+URL=http://127.0.0.1:4500/ OUT=/tmp/qr-cta-recheck node /tmp/qr-cta/capture.mjs
 ```
