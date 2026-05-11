@@ -219,9 +219,13 @@ interface CtaPillProps {
   onMouseLeave?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
-function CtaPillBase({ href, children, className, style, onMouseEnter, onMouseLeave }: CtaPillProps) {
+function CtaPillBase({ href, children, className, style }: CtaPillProps) {
   const prefersReducedMotion = useReducedMotion();
   const [isPressed, setIsPressed] = useState(false);
+
+  const handleMouseDown = () => setIsPressed(true);
+  const handleMouseUp = () => setIsPressed(false);
+  const handleMouseLeave = () => setIsPressed(false);
 
   const pressTransition = {
     duration: prefersReducedMotion ? 0 : 0.08,
@@ -233,6 +237,9 @@ function CtaPillBase({ href, children, className, style, onMouseEnter, onMouseLe
         href={href}
         className={`inline-flex items-center justify-center h-9 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-2 focus-visible:ring-offset-white ${className}`}
       style={style}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
     >
       <motion.span
         animate={{ scale: isPressed ? 0.98 : 1 }}
