@@ -5,8 +5,11 @@ import Features from "@/components/relay/Features";
 import CodeMockup from "@/components/relay/CodeMockup";
 import Stats from "@/components/relay/Stats";
 import Testimonials from "@/components/relay/Testimonials";
-import CTA from "@/components/relay/CTA";
 import Footer from "@/components/relay/Footer";
+
+import CTA from "@/components/relay/CTA";
+
+export const dynamic = "force-dynamic";
 
 export default function Page() {
   return (
