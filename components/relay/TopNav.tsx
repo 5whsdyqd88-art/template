@@ -154,7 +154,7 @@ interface NavItemProps {
   scrolled: boolean;
 }
 
-function NavItem({ item }: NavItemProps) {
+function NavItem({ item, scrolled }: NavItemProps) {
   const [isHovered, setIsHovered] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
@@ -168,12 +168,15 @@ function NavItem({ item }: NavItemProps) {
     ease: "easeOut",
   };
 
+  const ringColor = scrolled ? "ring-primary-300" : "ring-primary-500";
+  const ringOffsetColor = scrolled ? "ring-offset-white" : "ring-offset-transparent";
+
   return (
     <a
       href={item.href}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="relative inline-flex items-center gap-1 text-sm font-medium text-ink-700 hover:text-ink-900 focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-2 focus-visible:ring-offset-white"
+      className={`relative inline-flex items-center gap-1 text-sm font-medium text-ink-700 hover:text-ink-900 focus-visible:ring-2 focus-visible:${ringColor} focus-visible:ring-offset-2 ${ringOffsetColor}`}
       style={{ color: isHovered ? "rgb(26,26,26)" : "rgb(82,82,82)" }}
       aria-label={item.label}
     >
@@ -185,9 +188,9 @@ function NavItem({ item }: NavItemProps) {
       >
         <ChevronDown className="h-3 w-3" />
       </motion.span>
-        <motion.div
-          className="absolute left-0 h-[1.5px] bg-ink-900 origin-left"
-          style={{ top: "-2px", width: "100%" }}
+      <motion.span
+        className="absolute left-0 h-[1.5px] bg-ink-900 origin-left"
+        style={{ top: "-2px", width: "100%" }}
         animate={{ scaleX: isHovered ? 1 : 0 }}
         transition={{ ...underlineTransition, ease: prefersReducedMotion ? reducedMotionEasing : easing }}
       />
@@ -266,11 +269,12 @@ interface OutlinedPillProps extends CtaPillProps {
 
 function OutlinedPill({ href, children, scrolled, className, style }: OutlinedPillProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const ringColor = scrolled ? "ring-primary-300" : "ring-primary-500";
 
   return (
     <CtaPillBase
       href={href}
-      className={`border ${scrolled ? "border-ink-200 text-ink-900" : "border-ink-200 text-ink-900"} ${isHovered ? "bg-ink-900 text-white border-ink-900" : ""} focus-visible:ring-primary-300 ${className || ""}`}
+      className={`border ${scrolled ? "border-ink-200 text-ink-900" : "border-ink-200 text-ink-900"} ${isHovered ? "bg-ink-900 text-white border-ink-900" : ""} focus-visible:${ringColor} ${className || ""}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={style}
