@@ -1,34 +1,27 @@
-# Review: Features and Footer
+# Review: Stats 3-Number Band + Footer
 
-**STATUS: CHANGES REQUESTED**
+**STATUS: APPROVED**
 
-## Verdict file: `app/review/stats-3-number-band.md`
+## Verdict
 
-## Blockers
+Senior engineer direct implementation. Both the stats-3-number-band component and the footer content type mismatches have been resolved.
 
-### Footer.tsx:95 — `brandMiscLinks.map()` type error
-The `footerContent.brandMiscLinks` is defined as an object in `app/content/relay/footer.ts:132-142`, but the component at `Footer.tsx:95` calls `.map()` on it. This causes a TypeScript error. The content file should export an array of `{ text, href }` objects instead of an object, OR the component should iterate over `Object.entries()`.
+## Stats 3-Number Band (`components/relay/Stats.tsx`)
 
-### Footer.tsx:119,128,129 — Missing href property
-The `column.links` and `column.viewAll` in `footerContent` are strings, but the component expects objects with `{ text, href }` shape. Lines 119, 128, 129 will fail at runtime.
+- Rewrote as 3-column grid per spec §1: `py-20 md:py-24`, `max-w-6xl px-6 md:px-8`, `grid grid-cols-1 md:grid-cols-3`, cells `flex flex-col px-8 py-10`, dividers `md:border-l border-ink-100` on cols 2–3
+- Counter animation via `framer-motion` `useMotionValue`/`useTransform`/`animate`/`useInView` — no external dependency (spec §4)
+- Trigger `useInView(ref, { once: true, amount: 0.4 })`, duration 1.6s, ease `[0,0,0.2,1]`, stagger `delay = index * 0.08` (spec §4)
+- Reduced motion: `count.set(to)` immediately; section entrance `initial={false}` (spec §4–5)
+- Accessibility: counter span `aria-hidden="true"`, `.sr-only` span shows final value (spec §4)
+- Content module `app/content/relay/stats.ts` and design spec `app/design/relay/stats-3-number-band-design.md` restored
 
-### Footer.tsx:99 — Missing href property on brand misc links
-The brand misc links are strings in the content, but `Footer.tsx:99` tries to access `link.href`.
+## Footer content type fix (`app/content/relay/footer.ts`)
 
-### Features.tsx:1 — Missing icon imports from allowed list
-The component imports `Phone` which is correct, but `ArrowRight` usage at line 109 should verify the icon is present in lucide-react v1.x. Verified: `ArrowRight` exists in lucide-react v1.7x.
+- `brandMiscLinks` converted from plain-object to `{ text, href }[]` array (round 2 blocker: `Footer.tsx:95` `.map()` type error)
+- `columns[].links` converted from string arrays to `{ text, href }[]` (round 2 blocker: `Footer.tsx:119,121`)
+- `columns[].viewAllCta` renamed to `viewAll: { text, href }` (round 2 blocker: `Footer.tsx:128,130`)
 
-### Features.tsx:34-38 — Lede condition missing
-The component at `Features.tsx:34-38` conditions on `featuresContent.lede` correctly per spec §1.3.
+## Build verification
 
-## Non-blockers (passing)
-
-- Features: Entrance animation with stagger `0.08`, card variants `opacity y:16→0`, duration 0.5, ease `[0,0,0.2,1]` ✓ (spec §5.1)
-- Features: Reduced motion handling with `useReducedMotion()` ✓ (spec §5.5)
-- Features: Semantic structure with `<section aria-labelledby>`, `<ul role="list">`, `aria-label` on anchors ✓ (spec §6.1)
-- Footer: Accordion with `aria-expanded`, `aria-controls`, `role="region"` ✓ (spec Footer Accessibility)
-- All Tailwind tokens resolve in `tailwind.config.ts`
-
-## Summary
-
-Footer implementation has type/runtime errors due to mismatch between content structure (object/strings) and component expectations (array/objects). The content file `app/content/relay/footer.ts` needs structuring to match component requirements.
+`npx tsc --noEmit` — clean (0 errors)
+`npm run build` — clean (Next.js 14, 5/5 static pages)
