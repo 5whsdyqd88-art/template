@@ -3,45 +3,14 @@
 import { useState, useRef } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { Copy, Check, ArrowRight } from 'lucide-react';
+import { codeMockupContent } from '@/app/content/relay/code-mockup';
 
-const TABS = [
-  { id: 'node', label: 'Node.js' },
-  { id: 'python', label: 'Python' },
-  { id: 'curl', label: 'curl' },
-] as const;
-
-const codeMockupContent = {
-  eyebrow: 'DEVELOPERS',
-  headline: 'Integrate Relay in five lines',
-  body: 'Drop-in replacement for your existing HTTP client. Works with Node.js, Python, or curl. No server changes required.',
-  docsLink: 'Read the docs →',
-  copyLabel: 'Copy code',
-  samples: {
-    node: `const relay = require('relay-sdk');
-
-relay.send({
-  to: '+1234567890',
-  from: '+0987654321',
-  body: 'Hello from Relay!',
-});`,
-    python: `import relay
-
-relay.send(
-  to="+1234567890",
-  from="+0987654321",
-  body="Hello from Relay!"
-)`,
-    curl: `curl https://api.relay.com/v1/messages \\
-  -u your_api_key: \\
-  -d from="+1234567890" \\
-  -d to="+0987654321" \\
-  -d body="Hello from Relay!"`,
-  },
-} as const;
+const TABS = (Object.keys(codeMockupContent.tabs) as Array<keyof typeof codeMockupContent.tabs>).map(
+  (id) => ({ id, label: codeMockupContent.tabs[id] })
+);
 
 function SyntaxHighlight({ code }: { code: string }) {
-  const reducedMotion = useReducedMotion();
-  if (reducedMotion) {
+  if (useReducedMotion()) {
     return <pre className="font-mono text-sm text-ink-200">{code}</pre>;
   }
 
@@ -69,7 +38,7 @@ function SyntaxHighlight({ code }: { code: string }) {
   return <pre className="font-mono text-sm text-ink-200">{tokens}</pre>;
 }
 
-function Tab({ id, isActive, onClick, onKeyDown, ref }: { id: string; isActive: boolean; onClick: () => void; onKeyDown: (e: React.KeyboardEvent) => void; ref: React.Ref<HTMLButtonElement> }) {
+function Tab({ label, isActive, onClick, onKeyDown, ref }: { label: string; isActive: boolean; onClick: () => void; onKeyDown: (e: React.KeyboardEvent) => void; ref: React.Ref<HTMLButtonElement> }) {
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -82,11 +51,10 @@ function Tab({ id, isActive, onClick, onKeyDown, ref }: { id: string; isActive: 
       onClick={onClick}
       onKeyDown={onKeyDown}
       className={`relative px-4 py-3 text-sm font-medium transition-colors ${
-        isActive ? 'text-ink-900' : 'text-ink-500 hover:text-ink-700'
+        isActive ? 'text-ink-700' : 'text-ink-400 hover:text-ink-900'
       }`}
-      animate={isActive ? { opacity: 1 } : { opacity: 0.7 }}
     >
-      {id.charAt(0).toUpperCase() + id.slice(1)}
+      {label}
       {isActive && !shouldReduceMotion && (
         <motion.span
           layoutId="codeTabUnderline"
@@ -102,13 +70,13 @@ function Tab({ id, isActive, onClick, onKeyDown, ref }: { id: string; isActive: 
 }
 
 export default function CodeMockup() {
-  const [activeTab, setActiveTab] = useState('node');
+  const [activeTab, setActiveTab] = useState<keyof typeof codeMockupContent.tabs>('node');
   const [copySuccess, setCopySuccess] = useState(false);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useReducedMotion();
 
-  const handleTabChange = (tabId: string) => {
+  const handleTabChange = (tabId: keyof typeof codeMockupContent.tabs) => {
     setActiveTab(tabId);
   };
 
@@ -147,7 +115,7 @@ export default function CodeMockup() {
   };
 
   const handleCopy = async () => {
-    const code = codeMockupContent.samples[activeTab as keyof typeof codeMockupContent.samples];
+    const code = codeMockupContent.samples[activeTab];
     try {
       await navigator.clipboard.writeText(code);
       setCopySuccess(true);
@@ -174,7 +142,7 @@ export default function CodeMockup() {
             </motion.div>
 
             <motion.h2
-              className="mb-6 text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl"
+              className="mb-6 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl lg:text-5xl"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
@@ -209,7 +177,7 @@ export default function CodeMockup() {
 
           <div className="lg:col-span-7">
             <motion.div
-              className="overflow-hidden rounded-2xl bg-ink-900 shadow-2xl ring-1 ring-ink-800"
+              className="overflow-x-auto rounded-2xl bg-ink-900 shadow-2xl ring-1 ring-ink-800"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
@@ -226,7 +194,7 @@ export default function CodeMockup() {
                   {TABS.map((tab, index) => (
                     <Tab
                       key={tab.id}
-                      id={tab.id}
+                      label={tab.label}
                       isActive={activeTab === tab.id}
                       onClick={() => handleTabChange(tab.id)}
                       onKeyDown={(e) => handleKeyDown(e, index)}
@@ -241,10 +209,10 @@ export default function CodeMockup() {
                   type="button"
                   onClick={handleCopy}
                   className="ml-4 flex items-center gap-2 text-sm font-medium text-ink-400 hover:text-ink-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-ink-950 rounded px-2 py-1 transition-colors"
-                  aria-label={copySuccess ? 'Copied!' : codeMockupContent.copyLabel}
+                  aria-label={copySuccess ? codeMockupContent.copyButton.copied : codeMockupContent.copyButton.label}
                 >
                   {copySuccess ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                  <span className="text-xs hidden sm:inline">{copySuccess ? 'Copied!' : codeMockupContent.copyLabel}</span>
+                  <span className="text-xs hidden sm:inline">{copySuccess ? codeMockupContent.copyButton.copied : codeMockupContent.copyButton.label}</span>
                 </button>
               </div>
 
@@ -261,7 +229,7 @@ export default function CodeMockup() {
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <SyntaxHighlight code={codeMockupContent.samples[activeTab as keyof typeof codeMockupContent.samples]} />
+                    <SyntaxHighlight code={codeMockupContent.samples[activeTab]} />
                   </motion.div>
                 </AnimatePresence>
               </div>
