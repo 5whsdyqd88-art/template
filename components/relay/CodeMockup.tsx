@@ -51,9 +51,8 @@ function Tab({ label, isActive, onClick, onKeyDown, ref }: { label: string; isAc
       onClick={onClick}
       onKeyDown={onKeyDown}
       className={`relative px-4 py-3 text-sm font-medium transition-colors ${
-        isActive ? 'text-ink-900' : 'text-ink-500 hover:text-ink-700'
+        isActive ? 'text-ink-700' : 'text-ink-400 hover:text-ink-900'
       }`}
-      animate={isActive ? { opacity: 1 } : { opacity: 0.7 }}
     >
       {label}
       {isActive && !shouldReduceMotion && (
@@ -143,7 +142,7 @@ export default function CodeMockup() {
             </motion.div>
 
             <motion.h2
-              className="mb-6 text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl"
+              className="mb-6 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl lg:text-5xl"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
@@ -178,7 +177,7 @@ export default function CodeMockup() {
 
           <div className="lg:col-span-7">
             <motion.div
-              className="overflow-hidden rounded-2xl bg-ink-900 shadow-2xl ring-1 ring-ink-800"
+              className="overflow-x-auto rounded-2xl bg-ink-900 shadow-2xl ring-1 ring-ink-800"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
