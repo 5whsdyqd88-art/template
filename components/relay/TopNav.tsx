@@ -105,7 +105,7 @@ export default function TopNav() {
           </a>
         </motion.div>
 
-        <nav className="hidden md:flex flex-1 items-center max-w-md" aria-label="Primary">
+        <nav className="hidden md:flex flex-1 flex justify-center items-center" aria-label="Primary">
           <div className="flex items-center gap-8 lg:gap-10">
             {topNavContent.nav.map((item) => (
               <NavItem key={item.label} item={item} scrolled={scrolled} />
@@ -185,9 +185,9 @@ function NavItem({ item }: NavItemProps) {
       >
         <ChevronDown className="h-3 w-3" />
       </motion.span>
-      <motion.div
-        className="absolute bottom-0 left-0 h-[1.5px] bg-ink-900 origin-left"
-        style={{ width: "100%" }}
+        <motion.div
+          className="absolute left-0 h-[1.5px] bg-ink-900 origin-left"
+          style={{ top: "-2px", width: "100%" }}
         animate={{ scaleX: isHovered ? 1 : 0 }}
         transition={{ ...underlineTransition, ease: prefersReducedMotion ? reducedMotionEasing : easing }}
       />
@@ -200,9 +200,11 @@ interface CtaPillProps {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  onMouseEnter?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  onMouseLeave?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
-function CtaPillBase({ href, children, className, style }: CtaPillProps) {
+function CtaPillBase({ href, children, className, style, onMouseEnter, onMouseLeave }: CtaPillProps) {
   const prefersReducedMotion = useReducedMotion();
   const [isPressed, setIsPressed] = useState(false);
 
@@ -214,8 +216,14 @@ function CtaPillBase({ href, children, className, style }: CtaPillProps) {
   return (
     <a
       href={href}
-      onMouseEnter={() => setIsPressed(true)}
-      onMouseLeave={() => setIsPressed(false)}
+      onMouseEnter={(e) => {
+        setIsPressed(true);
+        onMouseEnter?.(e);
+      }}
+      onMouseLeave={(e) => {
+        setIsPressed(false);
+        onMouseLeave?.(e);
+      }}
       onMouseDown={() => setIsPressed(true)}
       onMouseUp={() => setIsPressed(false)}
       onTouchStart={() => setIsPressed(true)}
@@ -237,15 +245,18 @@ interface GhostLinkProps extends CtaPillProps {
   scrolled: boolean;
 }
 
-const GhostLink = ({ href, children, scrolled }: GhostLinkProps) => {
+const GhostLink = ({ href, children, scrolled, className, style }: GhostLinkProps) => {
   return (
     <a
       href={href}
-      className={`text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-2 focus-visible:ring-offset-white ${
+      className={`text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-2 focus-visible:ring-offset-white ${className || ""} ${
         scrolled ? "text-ink-700 hover:text-ink-900" : "text-ink-700 hover:text-ink-900"
       }`}
       aria-label={children as string}
-    />
+      style={style}
+    >
+      {children}
+    </a>
   );
 };
 
@@ -253,17 +264,16 @@ interface OutlinedPillProps extends CtaPillProps {
   scrolled: boolean;
 }
 
-function OutlinedPill({ href, children, scrolled }: OutlinedPillProps) {
-  const isHovered = false;
+function OutlinedPill({ href, children, scrolled, className, style }: OutlinedPillProps) {
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <CtaPillBase
       href={href}
-      className={`
-        border ${scrolled ? "border-ink-200 text-ink-900" : "border-ink-200 text-ink-900"}
-        ${isHovered ? "bg-ink-900 text-white border-ink-900" : ""}
-        focus-visible:ring-primary-300
-      `}
+      className={`border ${scrolled ? "border-ink-200 text-ink-900" : "border-ink-200 text-ink-900"} ${isHovered ? "bg-ink-900 text-white border-ink-900" : ""} focus-visible:ring-primary-300 ${className || ""}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={style}
     >
       {children}
     </CtaPillBase>
@@ -274,29 +284,22 @@ interface PrimaryPillProps extends CtaPillProps {
   scrolled?: boolean;
 }
 
-function PrimaryPill({ href, children }: PrimaryPillProps) {
-  const isHovered = false;
-
-  const shadowColor = isHovered
-    ? "rgba(74, 88, 224, 0.55)"
-    : "rgba(91, 108, 255, 0.4)";
+function PrimaryPill({ href, children, className, style }: PrimaryPillProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <CtaPillBase
       href={href}
-      className={`
-        bg-primary-500 text-white shadow-cta
-        ${isHovered ? "bg-primary-600" : ""}
-        focus-visible:ring-primary-500
-      `}
-      style={{
-        boxShadow: `0 4px 12px ${shadowColor}`,
-      }}
+      className={`bg-primary-500 text-white shadow-cta ${isHovered ? "bg-primary-600" : ""} focus-visible:ring-primary-500 ${className || ""}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={style}
     >
       <span className="inline-flex items-center gap-2">
         <motion.span
           animate={{ x: isHovered ? 2 : 0 }}
-          transition={{ duration: 0, ease: reducedMotionEasing }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: prefersReducedMotion ? reducedMotionEasing : easing }}
         >
           {children}
         </motion.span>
