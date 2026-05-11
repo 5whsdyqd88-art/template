@@ -394,38 +394,6 @@ function MobileDrawer({ open, onClose, scrolled, content, prefersReducedMotion }
     return () => currentDrawer?.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Tab") {
-        const focusable = drawerRef.current?.querySelectorAll(
-          'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        );
-        if (!focusable || focusable.length === 0) return;
-
-        const first = focusable[0] as HTMLElement;
-        const last = focusable[focusable.length - 1] as HTMLElement;
-
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
-      }
-    };
-
-    const currentDrawer = drawerRef.current;
-    currentDrawer?.addEventListener("keydown", handleKeyDown);
-    return () => currentDrawer?.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
-
   return (
     <>
       <motion.div
