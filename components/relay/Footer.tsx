@@ -1,26 +1,19 @@
 "use client";
 
 import { footerContent } from "@/app/content/relay/footer";
-import Image from "next/image";
-
-const Logo = () => (
-  <Image
-    src="/logo.svg"
-    alt="Relay"
-    width={110}
-    height={30}
-    className="w-[110px] lg:w-[110px] mt-8 lg:mt-0"
-  />
-);
 import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
+
+const Logo = () => (
+  <div className="text-white text-2xl font-bold">Relay</div>
+);
 
 function AccordionItem({
   heading,
   links,
 }: {
   heading: string;
-  links: readonly string[];
+  links: readonly { text: string; href: string }[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
@@ -39,7 +32,10 @@ function AccordionItem({
         <motion.svg
           className="w-4 h-4 text-white"
           animate={{ rotate: isOpen ? 45 : 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{
+            duration: shouldReduceMotion ? 0 : isOpen ? 0.3 : 0.2,
+            ease: isOpen ? [0.43, 0.13, 0.23, 0.96] : [0.65, 0.09, 0.38, 0.67],
+          }}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -61,7 +57,7 @@ function AccordionItem({
         animate={{ maxHeight: isOpen ? "500px" : 0 }}
         transition={{
           duration: shouldReduceMotion ? 0 : isOpen ? 0.3 : 0.2,
-          ease: [0.25, 0.46, 0.45, 0.94],
+          ease: isOpen ? [0.43, 0.13, 0.23, 0.96] : [0.65, 0.09, 0.38, 0.67],
         }}
       >
         <ul className="pb-4 flex flex-col space-y-3">
@@ -69,9 +65,9 @@ function AccordionItem({
             <li key={index}>
               <a
                 className="text-sm text-ink-200 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]"
-                href="#"
+                href={link.href}
               >
-                {link}
+                {link.text}
               </a>
             </li>
           ))}
@@ -86,54 +82,19 @@ export default function Footer() {
     <footer role="contentinfo" className="w-full bg-ink-900">
       <div className="max-w-screen-xl mx-auto px-8 py-10 md:py-12 lg:pt-16 lg:pb-12">
         <div className="flex flex-col gap-0 lg:grid lg:grid-cols-[200px_1fr_1fr_1fr_1fr] lg:gap-10 lg:items-start">
-          <div className="flex flex-col">
+          <div className="flex flex-col lg:order-1">
             <Logo />
-            <ul aria-label="Brand links">
-              <li>
-                <a className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                  {footerContent.brandMiscLinks.careers}
-                </a>
-              </li>
-              <li>
-                <a className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                  {footerContent.brandMiscLinks.org}
-                </a>
-              </li>
-              <li>
-                <a className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                  {footerContent.brandMiscLinks.press}
-                </a>
-              </li>
-              <li>
-                <a className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                  {footerContent.brandMiscLinks.investor}
-                </a>
-              </li>
-              <li>
-                <a className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                  {footerContent.brandMiscLinks.legal}
-                </a>
-              </li>
-              <li>
-                <a className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                  {footerContent.brandMiscLinks.privacy}
-                </a>
-              </li>
-              <li>
-                <a className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                  {footerContent.brandMiscLinks.security}
-                </a>
-              </li>
-              <li>
-                <a className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                  {footerContent.brandMiscLinks.sitemap}
-                </a>
-              </li>
-              <li>
-                <a className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                  {footerContent.brandMiscLinks.llms}
-                </a>
-              </li>
+            <ul aria-label="Brand links" className="space-y-3">
+              {footerContent.brandMiscLinks.map((link, index) => (
+                <li key={index}>
+                  <a
+                    className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]"
+                    href={link.href}
+                  >
+                    {link.text}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -146,14 +107,20 @@ export default function Footer() {
               <ul className="flex flex-col space-y-3">
                 {column.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
-                    <a className="text-sm text-ink-200 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                      {link}
+                    <a
+                      className="text-sm text-ink-200 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]"
+                      href={link.href}
+                    >
+                      {link.text}
                     </a>
                   </li>
                 ))}
                 <li className="mt-4">
-                  <a className="text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]" href="#">
-                    {column.viewAllCta} →
+                  <a
+                    className="text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]"
+                    href={column.viewAll.href}
+                  >
+                    {column.viewAll.text} →
                   </a>
                 </li>
               </ul>
@@ -168,6 +135,22 @@ export default function Footer() {
               />
             </div>
           ))}
+
+          <div className="lg:hidden order-1">
+            <Logo />
+            <ul aria-label="Brand links" className="space-y-3">
+              {footerContent.brandMiscLinks.map((link, index) => (
+                <li key={index}>
+                  <a
+                    className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]"
+                    href={link.href}
+                  >
+                    {link.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -177,7 +160,7 @@ export default function Footer() {
             <p className="text-xs font-normal text-ink-400 leading-normal">
               {footerContent.bottomBar.copyright}
             </p>
-            <p className="text-xs text-ink-500 leading-relaxed">
+            <p className="text-xs text-ink-400 leading-relaxed">
               {footerContent.bottomBar.ccpaNotice}
             </p>
           </div>
