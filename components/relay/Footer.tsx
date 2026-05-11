@@ -12,7 +12,7 @@ const Logo = () => (
     className="w-[110px] lg:w-[110px] mt-8 lg:mt-0"
   />
 );
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
 function AccordionItem({
@@ -23,13 +23,16 @@ function AccordionItem({
   links: readonly string[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+  const slugId = heading.replace(/\s+/g, "-").toLowerCase();
 
   return (
     <div className="border-b border-white/10">
       <button
+        id={`footer-trigger-${slugId}`}
         className="flex items-center justify-between w-full py-4 min-h-[44px] text-sm font-medium text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900"
         aria-expanded={isOpen}
-        aria-controls={`footer-panel-${heading.replace(/\s+/g, "-").toLowerCase()}`}
+        aria-controls={`footer-panel-${slugId}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         {heading}
@@ -50,13 +53,16 @@ function AccordionItem({
         </motion.svg>
       </button>
       <motion.div
-        id={`footer-panel-${heading.replace(/\s+/g, "-").toLowerCase()}`}
+        id={`footer-panel-${slugId}`}
         role="region"
-        aria-labelledby={`footer-trigger-${heading.replace(/\s+/g, "-").toLowerCase()}`}
+        aria-labelledby={`footer-trigger-${slugId}`}
         className="overflow-hidden"
         initial={{ maxHeight: 0 }}
         animate={{ maxHeight: isOpen ? "500px" : 0 }}
-        transition={{ duration: isOpen ? 0.3 : 0.2, ease: "easeOut" }}
+        transition={{
+          duration: shouldReduceMotion ? 0 : isOpen ? 0.3 : 0.2,
+          ease: [0.25, 0.46, 0.45, 0.94],
+        }}
       >
         <ul className="pb-4 flex flex-col space-y-3">
           {links.map((link, index) => (
