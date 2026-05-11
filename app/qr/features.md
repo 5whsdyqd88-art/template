@@ -55,3 +55,14 @@ All three Core Web Vitals are inside the gate.
 ## Summary
 
 Visual within tolerance against every cited rule; axe clean across desktop/tablet/mobile; CWV pass with LCP comfortably under the 2.5 s budget and zero layout shift.
+
+## Re-verification (SAN-307)
+
+Issue re-dispatched after the prior QR (a8953c4). `git diff a8953c4..HEAD -- components/relay/Features.tsx app/content/relay/features.ts app/design/relay/features-design.md` is empty — the post-approval `fix(features): address reviewer blockers` (967290b) only touched `app/content/relay/code-mockup.ts` and `app/content/relay/topnav.ts`, sibling-section content that doesn't reach Features. Re-ran the full pipeline against the current `v2-feature/features` tip anyway:
+
+- `npm run build` ✓ (Next 14.2.35, 5/5 static pages generated, `/` first-load 137 kB).
+- Fresh screenshots written to `app/qr/screenshots/features-{desktop,tablet,mobile}{,-section}.png` against `next start -p 3097`.
+- axe-core 4.10.2: desktop / tablet / mobile = **0 violations** (15 passes each) at `wcag2a wcag2aa wcag21a wcag21aa`, scoped to the Features section.
+- Lighthouse 12.8.2 (mobile, simulated): score **0.98**, FCP 0.8 s, **LCP 2.4 s**, **CLS 0**, **TBT 10 ms**, SI 0.8 s. All gates clear.
+
+Verdict carries forward: **APPROVED**.
