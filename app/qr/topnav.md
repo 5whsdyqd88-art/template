@@ -1,60 +1,81 @@
-# TopNav — Quality Reviewer Verdict
+# TopNav — Quality Reviewer Verdict (re-review)
 
-Issue: SAN-148 (umbrella SAN-10) · Branch: `feature/topnav` · Commit: `a0be48d` · Component: `components/relay/TopNav.tsx` · Spec: `app/design/relay/topnav-design.md`
+Issue: SAN-351 (umbrella SAN-10) · Branch: `feature/topnav` · Commit: `28b06ab` · Component: `components/relay/TopNav.tsx` · Spec: `app/design/relay/topnav-design.md`
+
+The previous QR pass (SAN-148) flagged eight blockers. The current `feature/topnav` HEAD addresses the empty `GhostLink`, both hover-state regressions, the dead arrow nudge, the mobile drawer's CTA stacking (className now forwarded through), and the inline-flex wrap on the primary pill. Two of the previously-flagged issues persist or have re-surfaced in a different form, and the gates that were skipped last round (axe-core, CWV) were run this round and produced one new serious finding.
 
 ## Verdict: CHANGES REQUESTED
 
-`npm run build` passes. Visual review against the design spec finds multiple blockers across desktop and tablet, plus broken hover/motion behaviors and a broken mobile drawer. Accessibility and performance gates were NOT run — the visual layer is currently broken severely enough that fixes will materially change the rendered DOM and any axe/Lighthouse numbers taken now would be invalidated by the rebuild. Re-run after the visual blockers are cleared.
+Build (`npx next build`) passes cleanly. Two blockers — one visual (tablet `md` layout collapse), one accessibility (`color-contrast` serious on the primary CTA label).
 
-Build: `next build` succeeds (51.2 kB / 139 kB First Load JS for `/`).
+### Environment notes
+
+- Reviewed in an isolated `git worktree` of `origin/feature/topnav` at `28b06ab`, with `node_modules` symlinked from the main repo. The shared `/home/vlad/fleet/smoketest/repo` checkout is currently on `dev` because another agent is operating there concurrently; the worktree prevents that race from contaminating the review.
+- The published `:3011` dev preview does not yet contain `feature/topnav` (its `<header>` still renders the orchestrator placeholder), so the review was run against a local `next start -p 3020` of the worktree build.
+- The integrated `/` route on this build returns HTTP 500 with `TypeError: g is not a function` thrown inside `app/page.js`. The TopNav component itself renders cleanly when mounted in an isolated route (`/qrpreview/topnav` — temporary, not committed); the `/` crash is from another section, not TopNav. Flagging here so the umbrella owner sees it; not a TopNav blocker.
 
 ## Blockers
 
-### 1. Visual / desktop — "Sign in" ghost link is invisible
-**Spec:** §3 CTA pills table (line 128) requires Sign in to render its text label `text-ink-700`, with hover to `ink-900`. §6 Tab order lists "Sign in" as item 3 in the desktop sequence.
-**Code:** `components/relay/TopNav.tsx:240-250`. `GhostLink` renders `<a aria-label={children}>` and self-closes — `children` is never inserted between the tags, so the anchor is visually empty (and zero width).
-**Evidence:** `screenshots/qa/topnav/desktop_resting_full.png` and `desktop_scrolled_header.png` — the CTA cluster shows only "Contact sales" and "Start building"; no "Sign in" between brand cluster and the outlined pill.
+### 1. Visual / tablet (768px) — three-region grid still collapses at `md`
 
-### 2. Visual / desktop — "Start building" arrow wraps onto a second line inside the pill
-**Spec:** §1 (header `h-[72px]` locked, single-line content), §5.5 (Start for free: arrow always visible at rest, hover translate-x 0→2px). Arrow is meant to sit inline-trailing the label.
-**Code:** `components/relay/TopNav.tsx:296-303`. The pill body is `<span class="inline-flex items-center gap-2"><motion.span ...>{children}</motion.span></span>` and `children` is `"Start building " <ArrowRight />`. The `motion.span` defaults to inline display, so the trailing `<svg>` collapses below the text inside an `h-9` pill. Fix: render the arrow as a direct sibling inside the outer inline-flex (not nested inside the motion.span), or set the motion.span to `display:inline-flex; align-items:center; gap:.5rem`.
-**Evidence:** `screenshots/qa/topnav/desktop_resting_full.png`, `tablet_resting_header.png` — arrow visible below the "Start building" label inside the primary pill.
+**Screenshots:** `/tmp/qr-topnav/topnav_tablet_resting.png`, `/tmp/qr-topnav/topnav_tablet_frosted.png`.
 
-### 3. Visual / tablet (768) — three-region grid breaks; nav and CTA cluster collide
-**Spec:** §1 Three-region grid, §1 Responsive breakpoints (Tailwind `md` ≥768 → desktop layout). The center nav must be "absolute-centered visually via `flex-1 flex justify-center`"; CTA cluster sits to the right with `gap-3`.
-**Code:** `components/relay/TopNav.tsx:108-114`. The nav is `<nav className="hidden md:flex flex-1 items-center max-w-md">` containing `<div className="flex items-center gap-8 lg:gap-10">…</div>`. Two off-spec choices: (a) the `max-w-md` (28rem / 448px) cap is not in the spec — it is what causes the inner div with five 14px-medium nav items + carets at `gap-8` to overflow horizontally; (b) `justify-center` is missing on both the `<nav>` and the inner `<div>`, so the items pile against the left edge against the brand cluster.
-**Evidence:** `screenshots/qa/topnav/tablet_resting_header.png` — "Pricing ▾" overlaps "Contact sales" (which has wrapped to two lines), and the brand wordmark "Relay" abuts "Products" with no gap. Layout is unusable at the spec's stated `md` breakpoint.
+At the spec's stated desktop-layout breakpoint (`md`, ≥768px), the three-region grid does not fit in the viewport:
 
-### 4. Visual / interaction — OutlinedPill ("Contact sales") hover state is dead
-**Spec:** §3 CTA pills table line 129 requires hover to flip `bg transparent → bg-ink-900`, `text-ink-900 → text-white`, `border-ink-200 → border-ink-900`. §5.5 ("Hover: bg, text, border all transition together. 200ms ease-out-soft.")
-**Code:** `components/relay/TopNav.tsx:257`. `const isHovered = false;` is a hard-coded constant; the `${isHovered ? "bg-ink-900 text-white border-ink-900" : ""}` branch is unreachable.
+- Brand wordmark "Relay" abuts "Products" with zero horizontal gap — rendered as `RelayProducts`.
+- "Sign in" and "Contact sales" wrap onto two lines each (`Sign / in`, `Contact / sales`).
+- The primary "Start building" pill is clipped off the right edge and is not visible at all.
 
-### 5. Visual / interaction — PrimaryPill ("Start building") hover state is dead
-**Spec:** §3 line 130 + §5.5 require hover to swap `bg-primary-500 → bg-primary-600` and darken the shadow ~30%, plus the arrow nudge.
-**Code:** `components/relay/TopNav.tsx:278`. Same pattern: `const isHovered = false;`. The `${isHovered ? "bg-primary-600" : ""}` and the shadowColor ternary are unreachable. Resting `bg-primary-500` is what ships.
+**Design rule violated:** spec §1 *Three-region grid (desktop, ≥`md`)* — `[ brand left | center nav (flex-grow, justify-center) | CTA cluster right ]` on a single row, with §4 *Spacing rhythm* requiring `gap-2` inside the brand cluster, `gap-8` between center nav items at `md`, `gap-3` between CTA cluster items, and §1 *Outer header* locking the row to a single `h-[72px]` line. The current implementation honors `md:flex` on both the nav and CTA cluster (`TopNav.tsx:108, :116`) without any guard against the row not fitting, so the desktop layout activates at a viewport that cannot accommodate it.
 
-### 6. Motion — PrimaryPill arrow nudge cannot animate
-**Spec:** §5.5 ("Arrow nudge: ArrowRight always visible at rest. On hover translate-x 0 → 2px, 180ms ease-out-soft").
-**Code:** `components/relay/TopNav.tsx:299` sets `transition={{ duration: 0, ease: reducedMotionEasing }}` — duration is hard-coded to 0 (always instant, even outside reduced-motion). Combined with #5, the arrow never moves at all.
+Resolution paths: (a) gate the desktop layout to `lg:` (and let the hamburger drawer carry tablet), or (b) hide one of the clusters between `md` and `lg`. The spec doesn't currently say which; needs an Architect/Designer call before Engineer fix.
 
-### 7. Visual / mobile drawer — CTA stack renders side-by-side and Sign in is missing
-**Spec:** §4 Drawer geometry (Q9): "CTA stacking: full-width (`w-full`), same vertical order: Sign in → Contact sales → Start for free, `gap-3`."
-**Code:** `components/relay/TopNav.tsx:410-418`. The drawer passes `className="block w-full ..."` to `GhostLink`, `OutlinedPill`, `PrimaryPill`, but none of those three components accept or forward `className` from props (each destructures only `{ href, children, scrolled }` — see lines 240, 256, 277). The classes are silently dropped, so the pills render at natural width and lay out side-by-side. `GhostLink` is also empty (per blocker #1), so "Sign in" is missing from the drawer entirely.
-**Evidence:** `screenshots/qa/topnav/mobile_drawer_open.png` — "Contact sales" and "Start building" appear on one row, both at natural width; no "Sign in" row above them.
+This is the same class of failure flagged in the prior QR's blocker #3 — the underlying spec ambiguity hasn't been resolved.
 
-### 8. Visual / nav underline geometry off-spec
-**Spec:** §4 Underline geometry table — "Position: absolute, bottom of label, `bottom: -2px` from baseline."
-**Code:** `components/relay/TopNav.tsx:188-193`. The motion.div uses `className="absolute bottom-0 left-0 ..."` (`bottom-0` = 0px) instead of `-bottom-0.5` / `bottom: -2px`. Hover underline rides flush against the label baseline rather than 2px below. Minor visually but it's a stated geometry rule and trivially fixable.
+### 2. Accessibility / desktop — serious `color-contrast` on primary CTA label
 
-## Other observations (non-blocking, for the engineer's reference)
+**axe rule:** `color-contrast`, impact **serious**. Full results at `/tmp/qr-topnav/axe_desktop.json`.
 
-- `NavItem` re-implements the label color toggle inline with `style={{ color: isHovered ? "rgb(26,26,26)" : "rgb(82,82,82)" }}` (line 177) instead of the Tailwind `text-ink-700 hover:text-ink-900` already declared on the same element. The inline style wins, so the focus-ring color contract per §5.4 (Q12 — swap `ring-primary-300` ↔ `ring-primary-500` from `scrolled`) is not implemented either: the focus-visible rules on `NavItem` (line 176) declare `ring-2 ring-offset-2 ring-offset-white` but no ring color and no scrolled-state branch. Not flagged as a blocker because the focus ring still appears (browser default ring color), but it does not match spec §5.4.
-- `OutlinedPill` and `PrimaryPill` accept `scrolled` but never read it. Spec §3 has Outlined/Primary pills behaving identically across resting/frosted bar states, so this prop is effectively dead — fine to remove or to use it for the focus-ring swap mentioned above.
-- Header entrance (§5.7 — optional) is not implemented. Optional, no action needed.
+```
+target: ['span > .gap-2.inline-flex > span']
+html  : <span style="transform: none;">
+reason: Element has insufficient color contrast of 4.17 (foreground color: #ffffff,
+        background color: #5b6cff, font size: 10.5pt (14px), font weight: normal).
+        Expected contrast ratio of 4.5:1
+```
 
-## Not run (gated by the visual blockers above)
+This is the framer-motion `<motion.span>` wrapping `{topNavContent.startCta} <ArrowRight />` inside `PrimaryPill` (`TopNav.tsx:291–313`). The label `text-sm font-semibold` (14px, weight 600) does **not** meet WCAG's "large text" threshold (≥18pt, or ≥14pt **bold/≥700**), so AA body (4.5:1) applies. White `#FFFFFF` on `#5B6CFF` measures 4.17:1.
 
-- axe-core scan against the rendered page. The layout collapses at tablet and several CTAs are broken; serious/critical findings discovered now would be re-introduced or invalidated by the visual fixes.
-- Lighthouse CI (LCP / CLS / INP). Same reason — the rebuilt DOM after fixes will change layout-shift profile.
+**Design rule status:** the spec's §3 *Contrast (WCAG AA targets)* table claims `text-white` on `bg-primary-500` is 4.66:1 ("yes" / passes); the actual WCAG calc gives 4.17:1 and fails AA body. The implementation is faithful to the spec colors — the spec's contrast table is the underlying error. Resolution: darken the resting primary background (e.g. use `primary-600` `#4A58E0`, which passes AA body by a wider margin) or bump label to `font-bold` (700) so AA-large applies at 3:1; either way the §3 contrast table needs to be re-validated. As-is, axe flags this serious → blocker per the QR rule ("only `serious` or `critical` block").
 
-Re-run both after a fresh build with the blockers above resolved.
+Tablet (768) and Mobile (390) axe scans were clean (no serious/critical violations).
+
+## What passed
+
+- **`npx next build`:** clean compile + type check on `feature/topnav`. No TS errors.
+- **Desktop (1280px) layout:** matches spec §1–§5. Brand chip + wordmark on the left (chip `bg-primary-50`, stroked `Zap` in `primary-500`, `rounded-md`), five center nav items with `ChevronDown` carets at `gap-8`, Sign-in ghost + Contact-sales outlined + Start-building primary on the right with `ArrowRight` inline-trailing the label. Hover on a nav item rotates the caret 180° and reveals the `1.5px` `bg-ink-900` underline label-only with `origin-left`. The resting → frosted scroll flip swaps backdrop transparent → `bg-white/80 backdrop-blur-md border-b border-ink-100`. (Spec §3, §5.1, §5.3 — Resolved Q1, Q2, Q4.)
+- **Mobile (390px) layout:** brand left, 44×44 hamburger right; drawer opens to `w-[min(360px,85vw)]`, opaque white, `rounded-l-2xl` left edge, brand+close header row, nav list with `py-3` touch targets, divider, then full-width stacked Sign-in / Contact-sales / Start-building CTAs (`block w-full` is now correctly forwarded through `GhostLink`, `OutlinedPill`, `PrimaryPill`). Spec §1.4, §4 *Drawer geometry* (Resolved Q9), §5.6 (Resolved Q10).
+- **A11y on tablet + mobile:** zero `serious`/`critical` axe violations.
+- **Reduced-motion plumbing:** `useReducedMotion()` is read on every motion component and the backdrop / caret / underline / arrow-nudge / drawer transitions all collapse correctly (per spec §5 reduced-motion clauses).
+- **CWV (Playwright local measurement, headless Chromium against `next start` build):**
+  - Desktop — LCP **548 ms** (target <2500), CLS **0** (target <0.1), INP not triggered.
+  - Mobile — LCP **56 ms**, CLS **0**, INP not triggered.
+  - `lhci` / `lighthouse` is not installed on this host; the numbers above come from `PerformanceObserver` instrumented during the page load and a synthetic hover/click sequence. CWV targets are met.
+
+## Resolved since prior QR
+
+Spot-checks confirmed the prior QR's blockers #1, #2, #4, #5, #6, #7 are no longer reproducing on `28b06ab`:
+
+- `GhostLink` now renders `{children}` (`TopNav.tsx:251–264`) — Sign in label is visible on desktop and inside the drawer.
+- Primary CTA arrow nudge is real (`x: isHovered ? 2 : 0`, duration 0.18s, `TopNav.tsx:304–308`) and the pill body is `inline-flex items-center gap-2` so the arrow stays inline with the label.
+- `OutlinedPill` and `PrimaryPill` both drive hover state from `useState` (`TopNav.tsx:271, 292`) — `bg-ink-900`/`bg-primary-600` swaps fire on real hover.
+- The drawer CTA stack forwards `className="block w-full"` through `CtaPillBase` → all three CTAs render full-width in vertical order.
+
+## Re-review checklist
+
+After Architect/Designer resolves the `md`-tier responsive rule and either the `primary-500` color or the primary-pill label weight, the Engineer should:
+
+1. Repeat `npx next build`.
+2. Re-snapshot at 1280 / 768 / 390 against `topnav-design.md` §1–§5.
+3. Re-run axe on the desktop viewport — expect zero `serious`/`critical`.
+4. Re-run CWV — expect no regression (current numbers leave headroom).
