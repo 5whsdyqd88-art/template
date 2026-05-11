@@ -1,58 +1,44 @@
-# TopNav Review Verdict
+# TopNav Review Verdict — Senior Engineer (REVIEW_OVERSIZE)
 
-**Status:** APPROVED (Senior Engineer override, cycle 7)
-
-**Reviewer:** Senior Engineer (SAN-356)
-**Date:** 2026-05-11
+**Status:** CHANGES REQUESTED
 **Branch:** `feature/topnav` vs `origin/main`
+**Spec:** `app/design/relay/topnav-design.md`
 
 ---
 
-## Checklist Compliance
+## Blockers
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Composition | ✅ | Single default-exported component with sub-components; no external dependencies beyond spec |
-| Tailwind classes | ✅ | `fixed top-0 left-0 right-0 z-50 h-[72px]`, 3-region layout, mobile drawer with `AnimatePresence` |
-| Content importing | ✅ | Imports `topNavContent` verbatim from `@/app/content/relay/topnav` |
-| Icons | ✅ | Uses `Zap`, `ChevronDown`, `Menu`, `X`, `ArrowRight` from lucide-react |
-| `"use client"` | ✅ | Present on line 1 |
-| File scope | ✅ | All components in single `TopNav.tsx` file |
+### 1. Nav underline positioned at top, not bottom of label
+- **File:** `components/relay/TopNav.tsx` — `NavItem` underline `motion.span`
+- **Spec §4 (Underline geometry):** "Position: absolute, bottom of label, `bottom: -2px` from baseline"
+- **Implementation:** `style={{ top: "-2px", width: "100%" }}` — `top: -2px` places the bar 2 px above the link's top edge, not 2 px below its bottom. Change to `bottom: -2px`.
 
----
+### 2. Nav underline spans label + caret (should be label-only)
+- **File:** `components/relay/TopNav.tsx` — same `motion.span`
+- **Spec §4:** "Width: 100% of label only (label-only, **not** label+caret)"
+- **Implementation:** `width: "100%"` on the underline inside the anchor that also contains `ChevronDown`. The underline must be placed inside a `<span>` wrapping only the label text, or sized to that span's measured width.
 
-## Defects Found & Fixed
+### 3. Mobile drawer panel missing `rounded-l-2xl`
+- **File:** `components/relay/TopNav.tsx` — `MobileDrawer` panel `motion.div`
+- **Spec §4 (Drawer geometry):** "`rounded-l-2xl` (16px on left edge only)"
+- **Implementation:** `className="fixed top-0 right-0 z-50 h-full w-[min(360px,85vw)] bg-white border-l border-ink-100 shadow-card"` — no `rounded-l-2xl`.
 
-### 1. Syntax Error: Underline Element (FIXED)
-- **Location:** `components/relay/TopNav.tsx:191`
-- **Issue:** Underline element was `<motion.div>` inside `<a>` (invalid HTML)
-- **Fix:** Changed to `<motion.span>` with proper className and inline styles
-- **Status:** ✅ Resolved
+### 4. Primary CTA pill label weight is `font-medium` instead of `font-semibold`
+- **File:** `components/relay/TopNav.tsx` — `CtaPillBase`
+- **Spec §2 (Type):** `"Start for free" pill label: text-sm font-semibold (600)`
+- **Implementation:** `CtaPillBase` applies `text-sm font-medium` to all pills. `PrimaryPill` inherits this without overriding. Add `font-semibold` to `PrimaryPill`'s className (or override in `CtaPillBase` call site).
 
-### 2. Focus Ring: NavItem (FIXED)
-- **Location:** `components/relay/TopNav.tsx:171-172, 179`
-- **Issue:** Static focus ring color (spec requires dynamic `ring-primary-300`/`ring-primary-500`)
-- **Fix:** introduced `ringColor` and `ringOffsetColor` variables based on `scrolled` prop
-- **Status:** ✅ Resolved
+### 5. Arrow nudge translates text + icon together instead of icon only
+- **File:** `components/relay/TopNav.tsx` — `PrimaryPill`
+- **Spec §5.5 (CTA pills — Start for free):** "On hover translate-x `0 → 2px`, 180ms — the arrow nudge"
+- **Implementation:** `<motion.span animate={{ x: isHovered ? 2 : 0 }}>{children}</motion.span>` where `children` includes the CTA text and `ArrowRight` icon. Only the `ArrowRight` icon should translate; the label text must stay fixed.
 
-### 3. Focus Ring: OutlinedPill (FIXED)
-- **Location:** `components/relay/TopNav.tsx:272, 277`
-- **Issue:** Static focus ring color (spec requires dynamic based on header state)
-- **Fix:** introduced `ringColor` variable based on `scrolled` prop
-- **Status:** ✅ Resolved
+### 6. `GhostLink` missing `h-9 px-2 py-2` hit-target geometry
+- **File:** `components/relay/TopNav.tsx` — `GhostLink`
+- **Spec §4 (Vertical / pill geometry):** "Sign in (ghost): `h-9` (36px), `px-2 py-2`"
+- **Implementation:** `GhostLink` renders a plain `<a>` with no height or padding. Both desktop and drawer usages lack the required 36 px hit target.
 
----
-
-## QR Round 2 Blockers — Resolved by Senior Engineer Direct Implementation
-
-### Blocker 1: Tablet layout collapse at `md`
-Changed desktop layout breakpoint from `md` (768px) to `lg` (1024px) in `TopNav.tsx` and updated spec §1 breakpoint table + Q8. Three-region grid activates at ≥1024px only; 768–1024px range uses mobile/drawer layout.
-
-### Blocker 2: Color contrast on primary CTA
-Changed `PrimaryPill` resting bg from `bg-primary-500` (#5B6CFF, 4.17:1 — fails AA body) to `bg-primary-600` (#4A58E0, 5.50:1 — passes AA body). Hover updated to `bg-primary-700`. Spec contrast table corrected accordingly.
-
-Build: `npm run build` passes cleanly.
-
-## Final Verdict
-
-**APPROVED** — QR Round 2 blockers resolved. Implementation matches corrected spec. No further engineer round needed.
+### 7. No focus trap in `MobileDrawer`
+- **File:** `components/relay/TopNav.tsx` — `MobileDrawer`
+- **Spec §6 (Focus management):** "Focus is trapped inside the drawer while open (Engineer: a small `useEffect` cycling focusable children at the boundaries)"
+- **Implementation:** Only the initial focus-to-close-button `useEffect` is present; there is no boundary trap preventing Tab from escaping the drawer into behind-the-scrim elements.
