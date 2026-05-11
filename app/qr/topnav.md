@@ -1,81 +1,91 @@
-# TopNav — Quality Reviewer Verdict (re-review)
+# TopNav — Quality Reviewer Verdict (SAN-359)
 
-Issue: SAN-351 (umbrella SAN-10) · Branch: `feature/topnav` · Commit: `28b06ab` · Component: `components/relay/TopNav.tsx` · Spec: `app/design/relay/topnav-design.md`
-
-The previous QR pass (SAN-148) flagged eight blockers. The current `feature/topnav` HEAD addresses the empty `GhostLink`, both hover-state regressions, the dead arrow nudge, the mobile drawer's CTA stacking (className now forwarded through), and the inline-flex wrap on the primary pill. Two of the previously-flagged issues persist or have re-surfaced in a different form, and the gates that were skipped last round (axe-core, CWV) were run this round and produced one new serious finding.
+Issue: SAN-359 · Umbrella: SAN-10 · Branch: `feature/topnav` · HEAD: `95aeda8` · Component: `components/relay/TopNav.tsx` · Spec: `app/design/relay/topnav-design.md`
 
 ## Verdict: CHANGES REQUESTED
 
-Build (`npx next build`) passes cleanly. Two blockers — one visual (tablet `md` layout collapse), one accessibility (`color-contrast` serious on the primary CTA label).
+`npx next build` passes. Axe is clean on all three viewports (0 serious/critical violations — the prior `color-contrast` finding on the primary CTA is resolved by the `primary-500 → primary-600` change in `64e9bc2`). CWV is well within targets. Tablet layout is now correct: `lg:` (not `md:`) gates the desktop layout, so 768px renders the mobile/hamburger layout per spec §1 — the prior tablet-collapse blocker is resolved.
 
-### Environment notes
+One new visual blocker remains: at desktop, the primary CTA's trailing `ArrowRight` wraps onto a second line inside the pill, so the label and the arrow are no longer on a single line.
 
-- Reviewed in an isolated `git worktree` of `origin/feature/topnav` at `28b06ab`, with `node_modules` symlinked from the main repo. The shared `/home/vlad/fleet/smoketest/repo` checkout is currently on `dev` because another agent is operating there concurrently; the worktree prevents that race from contaminating the review.
-- The published `:3011` dev preview does not yet contain `feature/topnav` (its `<header>` still renders the orchestrator placeholder), so the review was run against a local `next start -p 3020` of the worktree build.
-- The integrated `/` route on this build returns HTTP 500 with `TypeError: g is not a function` thrown inside `app/page.js`. The TopNav component itself renders cleanly when mounted in an isolated route (`/qrpreview/topnav` — temporary, not committed); the `/` crash is from another section, not TopNav. Flagging here so the umbrella owner sees it; not a TopNav blocker.
+### Environment
+
+- Built against worktree `/tmp/topnav-senior-wt` at `95aeda8` (the shared `/home/vlad/fleet/smoketest/repo` checkout is on `dev` and another worktree already had `feature/topnav` checked out).
+- The integrated `/` route returns HTTP 500 (`TypeError: g is not a function` from `app/page.js` — a crash inside one of the other section components, not TopNav). To exercise TopNav in isolation, this review built against a temporary, **uncommitted** route at `app/qrpreview/topnav/page.tsx` and served it via `next start -p 3031`. The crash on `/` is not a TopNav blocker but the umbrella owner should know it persists since the previous QR pass.
+- Screenshots, axe JSON, and CWV JSON: `/tmp/qr-topnav-359/`.
 
 ## Blockers
 
-### 1. Visual / tablet (768px) — three-region grid still collapses at `md`
+### 1. Visual / desktop (1440px) — primary CTA arrow wraps below the label
 
-**Screenshots:** `/tmp/qr-topnav/topnav_tablet_resting.png`, `/tmp/qr-topnav/topnav_tablet_frosted.png`.
+**Screenshots:** `/tmp/qr-topnav-359/desktop_resting.png`, `/tmp/qr-topnav-359/desktop_frosted.png` (both states reproduce the wrap).
 
-At the spec's stated desktop-layout breakpoint (`md`, ≥768px), the three-region grid does not fit in the viewport:
-
-- Brand wordmark "Relay" abuts "Products" with zero horizontal gap — rendered as `RelayProducts`.
-- "Sign in" and "Contact sales" wrap onto two lines each (`Sign / in`, `Contact / sales`).
-- The primary "Start building" pill is clipped off the right edge and is not visible at all.
-
-**Design rule violated:** spec §1 *Three-region grid (desktop, ≥`md`)* — `[ brand left | center nav (flex-grow, justify-center) | CTA cluster right ]` on a single row, with §4 *Spacing rhythm* requiring `gap-2` inside the brand cluster, `gap-8` between center nav items at `md`, `gap-3` between CTA cluster items, and §1 *Outer header* locking the row to a single `h-[72px]` line. The current implementation honors `md:flex` on both the nav and CTA cluster (`TopNav.tsx:108, :116`) without any guard against the row not fitting, so the desktop layout activates at a viewport that cannot accommodate it.
-
-Resolution paths: (a) gate the desktop layout to `lg:` (and let the hamburger drawer carry tablet), or (b) hide one of the clusters between `md` and `lg`. The spec doesn't currently say which; needs an Architect/Designer call before Engineer fix.
-
-This is the same class of failure flagged in the prior QR's blocker #3 — the underlying spec ambiguity hasn't been resolved.
-
-### 2. Accessibility / desktop — serious `color-contrast` on primary CTA label
-
-**axe rule:** `color-contrast`, impact **serious**. Full results at `/tmp/qr-topnav/axe_desktop.json`.
+The "Start building" pill renders with the label on line 1 and the `ArrowRight` SVG on line 2, inside the same 36px-tall pill. The bounding boxes confirm it:
 
 ```
-target: ['span > .gap-2.inline-flex > span']
-html  : <span style="transform: none;">
-reason: Element has insufficient color contrast of 4.17 (foreground color: #ffffff,
-        background color: #5b6cff, font size: 10.5pt (14px), font weight: normal).
-        Expected contrast ratio of 4.5:1
+<a> pill                              : x=1201.3  y=18  w=126.7  h=36   (single line tall, content overflows internally)
+  <span motion outer (scale-press)>   : x=1201.3  y=18  w= 94.7  h=36   display=block
+    <span class="inline-flex gap-2">  : x=1201.3  y=18  w= 94.7  h=36   display=inline-flex (single child)
+      <span motion inner (arrow nudge)>: x=1201.3 y=18  w= 94.7  h=36   display=block ← THE PROBLEM
+        "Start building"               : line 1 (~y 18–34)
+        <svg ArrowRight>               : line 2 (y=38, w=16  h=16) ← wraps below the text
 ```
 
-This is the framer-motion `<motion.span>` wrapping `{topNavContent.startCta} <ArrowRight />` inside `PrimaryPill` (`TopNav.tsx:291–313`). The label `text-sm font-semibold` (14px, weight 600) does **not** meet WCAG's "large text" threshold (≥18pt, or ≥14pt **bold/≥700**), so AA body (4.5:1) applies. White `#FFFFFF` on `#5B6CFF` measures 4.17:1.
+The inner `<motion.span>` (arrow-nudge wrapper, `TopNav.tsx:304–308`) computes `display: block` once framer-motion attaches its `style.transform`, which forces the text + svg siblings inside it into an inline-flow block context. Since the block fills the 94.7px available inside the pill's `px-4` and the natural width of "Start building" (~98px at `text-sm font-semibold`) + space + 16px svg exceeds 94.7px, the svg wraps. The outer `inline-flex items-center gap-2` (`TopNav.tsx:303`) has only **one** flex child (the inner motion.span) so its `gap-2` has nothing to apply between — and the inline-flex parent does not propagate down into the block child.
 
-**Design rule status:** the spec's §3 *Contrast (WCAG AA targets)* table claims `text-white` on `bg-primary-500` is 4.66:1 ("yes" / passes); the actual WCAG calc gives 4.17:1 and fails AA body. The implementation is faithful to the spec colors — the spec's contrast table is the underlying error. Resolution: darken the resting primary background (e.g. use `primary-600` `#4A58E0`, which passes AA body by a wider margin) or bump label to `font-bold` (700) so AA-large applies at 3:1; either way the §3 contrast table needs to be re-validated. As-is, axe flags this serious → blocker per the QR rule ("only `serious` or `critical` block").
+**Design rule violated:**
 
-Tablet (768) and Mobile (390) axe scans were clean (no serious/critical violations).
+- §2 *Type* table: `"Start for free" pill label … line-height intent: single line`.
+- §5.5 *CTA pills — Start for free*: "**Arrow nudge** (resolved Q7): `ArrowRight` always visible at rest. On hover translate-x `0 → 2px`, 180ms `ease-out-soft`. The arrow does not fade in — it lives there as a CTA affordance from the start." — the affordance only reads if the arrow is inline beside the label.
+- §4 *Vertical / pill geometry*: "All three share the same `h-9` baseline so they sit on a single line." — pill height stays 36px but the **internal** content wraps, defeating the intent.
+
+**Resolution paths (Engineer's call, no architect needed):**
+
+(a) Restructure `PrimaryPill` so the label and `ArrowRight` are **siblings inside the `inline-flex items-center gap-2` span**, not nested under a single `motion.span`. Apply the arrow-nudge `motion.span` to the **arrow only** (or use `motion.svg`):
+
+```tsx
+// PrimaryPill body
+<span className="inline-flex items-center gap-2">
+  <span>{children /* label only */}</span>
+  <motion.span animate={{ x: isHovered ? 2 : 0 }} transition={...}>
+    <ArrowRight className="h-4 w-4" />
+  </motion.span>
+</span>
+```
+
+This requires changing `TopNav` to pass label + arrow separately (e.g. accept a `trailingIcon` prop, or split `{topNavContent.startCta}` and `<ArrowRight />` as two children and have the pill render only the label inside the nudge wrapper). The `gap-2` then has two siblings to lay out and the inline-flex stays one line.
+
+(b) Force the inner motion.span back to inline behaviour: add `style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}` (or a Tailwind `inline-flex items-center gap-2 whitespace-nowrap` className) to the inner `motion.span`. Cheaper change but couples to framer-motion's display defaults.
+
+(c) Add `whitespace-nowrap` to the `<a>` (`TopNav.tsx:234`). Cheapest, but only masks the symptom — the inner block layout is still wrong and any narrower pill (e.g. with longer copy) would clip rather than wrap.
+
+Option (a) is the cleanest; (b) is the smallest diff.
 
 ## What passed
 
-- **`npx next build`:** clean compile + type check on `feature/topnav`. No TS errors.
-- **Desktop (1280px) layout:** matches spec §1–§5. Brand chip + wordmark on the left (chip `bg-primary-50`, stroked `Zap` in `primary-500`, `rounded-md`), five center nav items with `ChevronDown` carets at `gap-8`, Sign-in ghost + Contact-sales outlined + Start-building primary on the right with `ArrowRight` inline-trailing the label. Hover on a nav item rotates the caret 180° and reveals the `1.5px` `bg-ink-900` underline label-only with `origin-left`. The resting → frosted scroll flip swaps backdrop transparent → `bg-white/80 backdrop-blur-md border-b border-ink-100`. (Spec §3, §5.1, §5.3 — Resolved Q1, Q2, Q4.)
-- **Mobile (390px) layout:** brand left, 44×44 hamburger right; drawer opens to `w-[min(360px,85vw)]`, opaque white, `rounded-l-2xl` left edge, brand+close header row, nav list with `py-3` touch targets, divider, then full-width stacked Sign-in / Contact-sales / Start-building CTAs (`block w-full` is now correctly forwarded through `GhostLink`, `OutlinedPill`, `PrimaryPill`). Spec §1.4, §4 *Drawer geometry* (Resolved Q9), §5.6 (Resolved Q10).
-- **A11y on tablet + mobile:** zero `serious`/`critical` axe violations.
-- **Reduced-motion plumbing:** `useReducedMotion()` is read on every motion component and the backdrop / caret / underline / arrow-nudge / drawer transitions all collapse correctly (per spec §5 reduced-motion clauses).
-- **CWV (Playwright local measurement, headless Chromium against `next start` build):**
-  - Desktop — LCP **548 ms** (target <2500), CLS **0** (target <0.1), INP not triggered.
-  - Mobile — LCP **56 ms**, CLS **0**, INP not triggered.
-  - `lhci` / `lighthouse` is not installed on this host; the numbers above come from `PerformanceObserver` instrumented during the page load and a synthetic hover/click sequence. CWV targets are met.
+- **Build:** `npx next build` is clean (no TS errors, no compile errors).
+- **Tablet (768px) layout:** mobile/hamburger layout activates correctly at `<lg`; brand + 44×44 hamburger button only, no overflow. Spec §1 *Mobile (<lg)* and Resolved Q8 (desktop activates at `lg` = 1024px).
+- **Mobile (390px) layout:** brand left, hamburger right, drawer opens to `w-[min(360px,85vw)]` opaque white panel with `rounded-l-2xl` left edge, scrim with `bg-ink-900/40`, nav rows with `py-3` (≥44px touch target), divider, then full-width vertical CTA stack: Sign-in / Contact-sales / Start-building. Matches §1.4, §4 *Drawer geometry*, §5.6.
+- **Desktop (1440px) layout — non-CTA-pill regions:** brand chip (32×32 `rounded-md` `bg-primary-50` with stroked `Zap` in `primary-500`), 5 center nav items with carets at `gap-8…10`, Sign-in ghost link, Contact-sales outlined pill — all correct per §3, §4. Frosted state (`scrollY > 8`) flips backdrop transparent → `bg-white/80 backdrop-blur-md` and adds `border-b border-ink-100`, matching §3 *Header surface — frosted state* and §5.1.
+- **Primary CTA color contrast (the prior blocker):** `bg-primary-600` (#4A58E0) with `text-white` clears WCAG AA body at 5.50:1 — axe reports zero `color-contrast` violations on desktop, tablet, and mobile. Resolved.
+- **Accessibility (axe-core, wcag2a/aa + wcag21a/aa + wcag22aa):** **0 violations of any impact level** at desktop (1440×900), tablet (768×1024), and mobile (390×844). JSON dumps at `/tmp/qr-topnav-359/axe_{desktop,tablet,mobile}.json`.
+- **Core Web Vitals (Playwright `PerformanceObserver`, headless Chromium against `next start`):**
+  - Desktop — **LCP 496 ms** (target < 2500), **CLS 0.0000** (target < 0.1), INP not triggered by synthetic interaction.
+  - Mobile — **LCP 84 ms**, **CLS 0.0000**, INP not triggered.
+  - `lighthouse` / `lhci` not installed on this host; `PerformanceObserver` numbers above are the canonical CWV signals. Substantial headroom under targets.
 
-## Resolved since prior QR
+## What didn't get verified end-to-end
 
-Spot-checks confirmed the prior QR's blockers #1, #2, #4, #5, #6, #7 are no longer reproducing on `28b06ab`:
-
-- `GhostLink` now renders `{children}` (`TopNav.tsx:251–264`) — Sign in label is visible on desktop and inside the drawer.
-- Primary CTA arrow nudge is real (`x: isHovered ? 2 : 0`, duration 0.18s, `TopNav.tsx:304–308`) and the pill body is `inline-flex items-center gap-2` so the arrow stays inline with the label.
-- `OutlinedPill` and `PrimaryPill` both drive hover state from `useState` (`TopNav.tsx:271, 292`) — `bg-ink-900`/`bg-primary-600` swaps fire on real hover.
-- The drawer CTA stack forwards `className="block w-full"` through `CtaPillBase` → all three CTAs render full-width in vertical order.
+- **INP** — synthetic hover/scroll didn't trigger an interaction event observable by `event-timing`. The TopNav's interactive surface is small (caret rotations, pill hovers, drawer open) and the underlying transitions are framer-motion CSS transforms that don't block the main thread. No regression risk flagged, but call out that this metric isn't measured here.
+- **The `:3011` dev preview** does not yet carry `feature/topnav` (umbrella `/` 500 prevents the auto-deploy from finishing a clean build), so visual review used the isolated `qrpreview` route described above.
 
 ## Re-review checklist
 
-After Architect/Designer resolves the `md`-tier responsive rule and either the `primary-500` color or the primary-pill label weight, the Engineer should:
+After the Engineer restructures `PrimaryPill` (option (a) or (b) above):
 
-1. Repeat `npx next build`.
-2. Re-snapshot at 1280 / 768 / 390 against `topnav-design.md` §1–§5.
-3. Re-run axe on the desktop viewport — expect zero `serious`/`critical`.
-4. Re-run CWV — expect no regression (current numbers leave headroom).
+1. Re-run `npx next build` — expect clean.
+2. Re-screenshot at 1440 / 768 / 390 — expect "Start building" label + `ArrowRight` on a single line, pill width grows to fit.
+3. Re-run axe — expect to remain at 0 serious/critical (no contrast regression from the structural change).
+4. Re-measure CWV — no regression expected (the change is structural HTML, not styling).
+
+No spec amendment required; the rule was always single-line.
