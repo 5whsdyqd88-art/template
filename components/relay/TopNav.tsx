@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion, Easing } from "framer-motion";
 import { Zap, ChevronDown, Menu, X, ArrowRight } from "lucide-react";
 
@@ -121,7 +121,7 @@ export default function TopNav() {
             {topNavContent.contactSales}
           </OutlinedPill>
           <PrimaryPill href="#" scrolled={scrolled}>
-            {topNavContent.startCta} <ArrowRight className="h-4 w-4" />
+            {topNavContent.startCta}
           </PrimaryPill>
         </div>
 
@@ -157,6 +157,16 @@ interface NavItemProps {
 function NavItem({ item, scrolled }: NavItemProps) {
   const [isHovered, setIsHovered] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+  const labelRef = useRef<HTMLSpanElement>(null);
+  const labelWidth = useMemo(() => {
+    const span = document.createElement("span");
+    span.style.cssText = "position: absolute; visibility: hidden; white-space: nowrap; font-size: 14px; font-weight: 500;";
+    span.textContent = item.label;
+    document.body.appendChild(span);
+    const width = span.offsetWidth;
+    document.body.removeChild(span);
+    return width;
+  }, [item.label]);
 
   const underlineTransition = {
     duration: prefersReducedMotion ? 0 : 0.2,
@@ -180,7 +190,9 @@ function NavItem({ item, scrolled }: NavItemProps) {
       style={{ color: isHovered ? "rgb(26,26,26)" : "rgb(82,82,82)" }}
       aria-label={item.label}
     >
-      {item.label}
+      <span ref={labelRef} style={{ display: "inline-block" }}>
+        {item.label}
+      </span>
       <motion.span
         style={{ display: "inline-flex" }}
         animate={{ rotate: isHovered ? 180 : 0 }}
@@ -190,7 +202,7 @@ function NavItem({ item, scrolled }: NavItemProps) {
       </motion.span>
       <motion.span
         className="absolute left-0 h-[1.5px] bg-ink-900 origin-left"
-        style={{ top: "-2px", width: "100%" }}
+        style={{ bottom: "-2px", width: labelWidth }}
         animate={{ scaleX: isHovered ? 1 : 0 }}
         transition={{ ...underlineTransition, ease: prefersReducedMotion ? reducedMotionEasing : easing }}
       />
@@ -217,21 +229,9 @@ function CtaPillBase({ href, children, className, style, onMouseEnter, onMouseLe
   };
 
   return (
-    <a
-      href={href}
-      onMouseEnter={(e) => {
-        setIsPressed(true);
-        onMouseEnter?.(e);
-      }}
-      onMouseLeave={(e) => {
-        setIsPressed(false);
-        onMouseLeave?.(e);
-      }}
-      onMouseDown={() => setIsPressed(true)}
-      onMouseUp={() => setIsPressed(false)}
-      onTouchStart={() => setIsPressed(true)}
-      onTouchEnd={() => setIsPressed(false)}
-      className={`inline-flex items-center justify-center h-9 rounded-full px-4 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-2 focus-visible:ring-offset-white ${className}`}
+      <a
+        href={href}
+        className={`inline-flex items-center justify-center h-9 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-2 focus-visible:ring-offset-white ${className}`}
       style={style}
     >
       <motion.span
@@ -252,7 +252,7 @@ const GhostLink = ({ href, children, scrolled, className, style }: GhostLinkProp
   return (
     <a
       href={href}
-      className={`text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-2 focus-visible:ring-offset-white ${className || ""} ${
+      className={`h-9 px-2 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-2 focus-visible:ring-offset-white ${className || ""} ${
         scrolled ? "text-ink-700 hover:text-ink-900" : "text-ink-700 hover:text-ink-900"
       }`}
       aria-label={children as string}
@@ -301,11 +301,12 @@ function PrimaryPill({ href, children, className, style }: PrimaryPillProps) {
       style={style}
     >
       <span className="inline-flex items-center gap-2">
+        <span>{children}</span>
         <motion.span
           animate={{ x: isHovered ? 2 : 0 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: prefersReducedMotion ? reducedMotionEasing : easing }}
         >
-          {children}
+          <ArrowRight className="h-4 w-4" />
         </motion.span>
       </span>
     </CtaPillBase>
@@ -353,11 +354,76 @@ function MobileDrawer({ open, onClose, scrolled, content, prefersReducedMotion }
       };
 
   const focusRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open && focusRef.current) {
       focusRef.current.focus();
     }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        const focusable = drawerRef.current?.querySelectorAll(
+          'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable || focusable.length === 0) return;
+
+        const first = focusable[0] as HTMLElement;
+        const last = focusable[focusable.length - 1] as HTMLElement;
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
+
+    const currentDrawer = drawerRef.current;
+    currentDrawer?.addEventListener("keydown", handleKeyDown);
+    return () => currentDrawer?.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        const focusable = drawerRef.current?.querySelectorAll(
+          'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable || focusable.length === 0) return;
+
+        const first = focusable[0] as HTMLElement;
+        const last = focusable[focusable.length - 1] as HTMLElement;
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
+
+    const currentDrawer = drawerRef.current;
+    currentDrawer?.addEventListener("keydown", handleKeyDown);
+    return () => currentDrawer?.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
   return (
@@ -371,17 +437,18 @@ function MobileDrawer({ open, onClose, scrolled, content, prefersReducedMotion }
         onClick={onClose}
         aria-hidden="true"
       />
-      <motion.div
-        role="dialog"
-        aria-modal="true"
-        aria-label={content.mobileMenuLabel}
-        className="fixed top-0 right-0 z-50 h-full w-[min(360px,85vw)] bg-white border-l border-ink-100 shadow-card"
-        initial="exit"
-        animate="enter"
-        exit="exit"
-        variants={drawerTransition}
-        onClick={(e) => e.stopPropagation()}
-      >
+        <motion.div
+          ref={drawerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={content.mobileMenuLabel}
+          className="fixed top-0 right-0 z-50 h-full w-[min(360px,85vw)] bg-white rounded-l-2xl border-l border-ink-100 shadow-card"
+          initial="exit"
+          animate="enter"
+          exit="exit"
+          variants={drawerTransition}
+          onClick={(e) => e.stopPropagation()}
+        >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-6 py-6 border-b border-ink-100">
             <span className="text-base font-semibold tracking-tight text-ink-900">
