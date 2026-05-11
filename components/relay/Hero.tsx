@@ -38,29 +38,31 @@ const blobAnimations = [
   },
 ];
 
-const Blob = ({ 
-  color, 
-  size, 
-  position, 
-  ampX, 
-  ampY, 
-  duration, 
-  delay, 
-  reducedMotion 
-}: { 
-  color: string; 
-  size: string; 
-  position: string; 
-  ampX: number; 
-  ampY: number; 
-  duration: number; 
-  delay: number; 
-  reducedMotion: boolean 
+const Blob = ({
+  color,
+  size,
+  position,
+  ampX,
+  ampY,
+  duration,
+  delay,
+  zIndex,
+  reducedMotion,
+}: {
+  color: string;
+  size: string;
+  position: string;
+  ampX: number;
+  ampY: number;
+  duration: number;
+  delay: number;
+  zIndex: string;
+  reducedMotion: boolean;
 }) => {
   if (reducedMotion) {
     return (
       <div
-        className={`absolute ${size} ${position} rounded-full blur-3xl opacity-50 mix-blend-normal z-0`}
+        className={`absolute ${size} ${position} rounded-full blur-3xl opacity-50 mix-blend-normal ${zIndex}`}
         style={{ backgroundColor: color }}
       />
     );
@@ -68,7 +70,7 @@ const Blob = ({
 
   return (
     <motion.div
-      className={`absolute ${size} ${position} rounded-full blur-3xl opacity-50 mix-blend-normal z-0`}
+      className={`absolute ${size} ${position} rounded-full blur-3xl opacity-50 mix-blend-normal ${zIndex}`}
       style={{ backgroundColor: color }}
       animate={{
         x: [-ampX, ampX, -ampX],
@@ -91,10 +93,10 @@ export default function Hero() {
   return (
     <section className="relative w-full bg-white">
       <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,_var(--tw-gradient-stops))] from-[#F4F5FF] via-white to-white pointer-events-none" />
-      
+
       <div className="relative max-w-[1280px] mx-auto px-8 lg:px-6">
         <div className="grid lg:grid-cols-5 gap-x-12 lg:gap-x-16 items-center py-24 lg:py-20 md:py-16 sm:py-14">
-          
+
           <div className="lg:col-span-3 lg:order-1 order-1 space-y-6 md:space-y-5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white ring-1 ring-ink-200 shadow-card">
               <span className="relative flex items-center gap-1.5">
@@ -136,13 +138,10 @@ export default function Hero() {
                 onClick={(e) => e.preventDefault()}
               >
                 {heroContent.primaryCta}
-                <motion.div
-                  className="inline-flex items-center gap-2"
-                  animate={reducedMotion ? {} : { x: 0 }}
-                  whileHover={!reducedMotion ? { x: 2 } : {}}
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </motion.div>
+                <ArrowRight
+                  className="h-4 w-4 transition-transform duration-200 group-hover:motion-safe:translate-x-0.5"
+                  aria-hidden="true"
+                />
               </Link>
 
               <Link
@@ -166,6 +165,7 @@ export default function Hero() {
                 ampY={blob.ampY}
                 duration={blob.duration}
                 delay={blob.delay}
+                zIndex={blob.zIndex}
                 reducedMotion={reducedMotion}
               />
             ))}
@@ -175,6 +175,7 @@ export default function Hero() {
               animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0, 0, 0.2, 1], delay: 0.8 }}
               className="absolute bottom-[16%] left-[10%] z-20 px-4 py-3 rounded-xl bg-white/80 backdrop-blur-md ring-1 ring-ink-200/80 shadow-card"
+              aria-hidden="true"
             >
               <code className="font-mono text-[13px] leading-5 font-medium text-ink-800">
                 {heroContent.codeChipText}
