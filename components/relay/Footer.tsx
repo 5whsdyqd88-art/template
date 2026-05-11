@@ -1,18 +1,11 @@
 "use client";
 
 import { footerContent } from "@/app/content/relay/footer";
-import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
 const Logo = () => (
-  <Image
-    src="/logo.svg"
-    alt="Relay"
-    width={110}
-    height={30}
-    className="w-[110px] lg:w-[110px] mt-8 lg:mt-0"
-  />
+  <div className="text-white text-2xl font-bold">Relay</div>
 );
 
 function AccordionItem({
@@ -89,9 +82,9 @@ export default function Footer() {
     <footer role="contentinfo" className="w-full bg-ink-900">
       <div className="max-w-screen-xl mx-auto px-8 py-10 md:py-12 lg:pt-16 lg:pb-12">
         <div className="flex flex-col gap-0 lg:grid lg:grid-cols-[200px_1fr_1fr_1fr_1fr] lg:gap-10 lg:items-start">
-          <div className="flex flex-col">
+          <div className="flex flex-col lg:order-1">
             <Logo />
-            <ul aria-label="Brand links">
+            <ul aria-label="Brand links" className="space-y-3">
               {footerContent.brandMiscLinks.map((link, index) => (
                 <li key={index}>
                   <a
@@ -142,6 +135,22 @@ export default function Footer() {
               />
             </div>
           ))}
+
+          <div className="lg:hidden order-1">
+            <Logo />
+            <ul aria-label="Brand links" className="space-y-3">
+              {footerContent.brandMiscLinks.map((link, index) => (
+                <li key={index}>
+                  <a
+                    className="text-sm text-ink-300 hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900 py-[5px]"
+                    href={link.href}
+                  >
+                    {link.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -151,7 +160,7 @@ export default function Footer() {
             <p className="text-xs font-normal text-ink-400 leading-normal">
               {footerContent.bottomBar.copyright}
             </p>
-            <p className="text-xs text-ink-500 leading-relaxed">
+            <p className="text-xs text-ink-400 leading-relaxed">
               {footerContent.bottomBar.ccpaNotice}
             </p>
           </div>
