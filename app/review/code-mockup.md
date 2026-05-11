@@ -1,23 +1,29 @@
-STATUS: APPROVED
+STATUS: CHANGES REQUESTED
 
-## Summary
+## Blockers
 
-Component now imports all content from `app/content/relay/code-mockup.ts`. Tab labels, copy button strings, and code samples all sourced from the content module. Design spec written at `app/design/relay/code-mockup-design.md`. Build and type-check pass.
+### B1 — Active tab text invisible (a11y serious)
+`components/relay/CodeMockup.tsx:84` — `text-ink-900` on `bg-ink-950` = 1.13:1 contrast (WCAG AA requires 4.5:1)
 
-## Checklist
+### B2 — Inactive tabs fail color contrast (a11y serious)  
+`components/relay/CodeMockup.tsx:84` — `text-ink-500` with `opacity: 0.7` on `bg-ink-950` = 2.44:1
+
+### B3 — Terminal card overflows viewport on tablet/mobile
+`components/relay/CodeMockup.tsx:211` — No overflow handling for code panel at < 768 px
+
+### B4 — Headline overflows on mobile
+`components/relay/CodeMockup.tsx:176` — `text-4xl sm:text-5xl` doesn't fit 390 px viewport
+
+## Checklist (passing items)
 
 | Check | Status |
 |-------|--------|
 | `use client` present | ✅ |
-| Content imported from `app/content/relay/code-mockup` | ✅ |
-| Tab labels from `codeMockupContent.tabs` | ✅ |
-| Copy button strings from `codeMockupContent.copyButton` | ✅ |
-| Code samples from `codeMockupContent.samples` | ✅ (`@relay/sdk`, `relay.Client`, `api.relay.dev`) |
 | Icons from lucide-react | ✅ (`Copy`, `Check`, `ArrowRight`) |
-| Design spec present at `app/design/relay/code-mockup-design.md` | ✅ |
+| Design spec present | ✅ |
 | `npx tsc --noEmit` passes | ✅ |
 | `npm run build` passes | ✅ |
-| Scope: only `components/relay/CodeMockup.tsx` + spec/review files | ✅ |
+| Scope: only expected files changed | ✅ |
 
 ---
-*Senior Engineer direct implementation — 2026-05-11*
+*Reviewer verdict — 2026-05-11*
