@@ -1,106 +1,167 @@
-"use client";
+import { motion, useReducedMotion } from "framer-motion"
+import { ArrowRight } from "lucide-react"
+import { ctaContent } from "@/app/content/relay/cta"
 
-import { useRef } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { ctaContent } from "@/app/content/relay/cta";
+type Transition = {
+  duration: number
+  ease: readonly [number, number, number, number]
+}
+
+type MotionVariants = {
+  hidden: { opacity: number; y?: number }
+  visible: { opacity: number; y?: number }
+}
+
+function getVariants(
+  prefersReducedMotion: boolean
+): MotionVariants {
+  return prefersReducedMotion
+    ? { hidden: { opacity: 0 }, visible: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, y: 24 },
+        visible: { opacity: 1, y: 0 },
+      }
+}
+
+function getButtonVariants(
+  prefersReducedMotion: boolean
+): MotionVariants {
+  return prefersReducedMotion
+    ? { hidden: { opacity: 0 }, visible: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, y: 16 },
+        visible: { opacity: 1, y: 0 },
+      }
+}
+
+function getTransition(): Transition {
+  return {
+    duration: 0.5,
+    ease: [0, 0, 0.2, 1] as const,
+  }
+}
+
+function getButtonTransition(): Transition {
+  return {
+    duration: 0.4,
+    ease: [0, 0, 0.2, 1] as const,
+  }
+}
 
 export default function CTA() {
-  const shouldReduceMotion = useReducedMotion();
-  const contentRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion() ?? false
 
-  const transition = {
-    duration: 0.6,
-    ease: [0.0, 0.0, 0.2, 1] as const,
-  };
+  const contentVariants = getVariants(prefersReducedMotion)
+  const transition = getTransition()
 
   return (
     <section
       id="cta"
-      aria-labelledby="cta-headline"
-      className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-primary-500 py-20 px-6 md:py-24 md:px-8"
+      className="relative flex w-full flex-col items-center py-24 font-sans"
+      style={{
+        background:
+          "linear-gradient(135deg, #3B46B8 0%, #5B6CFF 50%, #4A58E0 100%)",
+      }}
     >
-      <svg
-        aria-hidden="true"
-        focusable="false"
-        className="absolute inset-0 h-full w-full pointer-events-none"
-        viewBox="0 0 1440 600"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <defs>
-          <radialGradient id="cta-glow" cx="80%" cy="0%" r="60%">
-            <stop offset="0%" stopColor="white" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="white" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <rect x="0" y="0" width="1440" height="600" fill="url(#cta-glow)" />
-        <path
-          d="M -120 460 Q 360 260 720 480 T 1560 420"
-          stroke="white"
-          stroke-opacity="0.07"
-          stroke-width="1.5"
-          fill="none"
-        />
-        <path
-          d="M -120 180 Q 360 -40 720 220 T 1560 200"
-          stroke="white"
-          stroke-opacity="0.10"
-          stroke-width="1.5"
-          fill="none"
-        />
-      </svg>
+      <SVGDecorativeLayer />
 
-      <div className="relative z-10 mx-auto max-w-3xl text-center">
-        {shouldReduceMotion ? (
-          <div ref={contentRef}>
-            <Content />
-          </div>
-        ) : (
-          <motion.div
-            ref={contentRef}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={transition}
-          >
-            <Content />
-          </motion.div>
-        )}
+      <div className="relative z-10 mx-auto max-w-[75rem] px-8 text-center">
+        <motion.h2
+          className="mx-auto max-w-3xl text-display-md font-medium leading-[1.15] tracking-[-0.01em] text-white"
+          initial="hidden"
+          animate="visible"
+          variants={contentVariants}
+          transition={transition}
+        >
+          {ctaContent.headline}
+        </motion.h2>
+
+        <motion.p
+          className="mx-auto mt-8 max-w-2xl text-lg font-normal leading-7 text-white/80"
+          initial="hidden"
+          animate="visible"
+          variants={contentVariants}
+          transition={{ ...transition, delay: 0.1 }}
+        >
+          {ctaContent.subhead}
+        </motion.p>
+
+        <motion.div
+          className="mx-auto mt-8 flex flex-col items-center justify-center gap-4 md:flex-row"
+          initial="hidden"
+          animate="visible"
+          variants={contentVariants}
+          transition={{ ...transition, delay: 0.2 }}
+        >
+          <CTAPrimary prefersReducedMotion={prefersReducedMotion} />
+          <CTASecondary prefersReducedMotion={prefersReducedMotion} />
+        </motion.div>
       </div>
     </section>
-  );
+  )
 }
 
-function Content() {
+function SVGDecorativeLayer() {
   return (
-    <>
-      <h2
-        id="cta-headline"
-        className="text-3xl mb-5 text-balance font-sans font-semibold tracking-[-0.01em] leading-[1.15] text-white md:text-display-md"
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 z-0 pointer-events-none"
+    >
+      <svg
+        className="h-full w-full"
+        viewBox="0 0 1440 400"
+        preserveAspectRatio="none"
       >
-        {ctaContent.headline}
-      </h2>
-      <p
-        className="text-lg text-pretty text-white mx-auto max-w-2xl md:text-xl"
-        style={{ opacity: 0.88 }}
-      >
-        {ctaContent.subhead}
-      </p>
-      <div className="mt-8 flex flex-col gap-3 justify-center items-stretch sm:items-center sm:flex-row md:mt-10 md:gap-4">
-        <a
-          href="#start"
-          className="h-14 w-full rounded-full bg-white px-7 py-4 text-base font-semibold leading-none text-primary-700 inline-flex items-center justify-center gap-2 shadow-cta hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-8px_rgba(91,108,255,0.55)] active:translate-y-0 active:scale-[0.98] transition duration-300 ease-out-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600 sm:w-auto"
-        >
-          <span>{ctaContent.primaryCta}</span>
-          <ArrowRight aria-hidden="true" className="h-4 w-4" />
-        </a>
-        <a
-          href="#contact"
-          className="h-14 w-full rounded-full bg-transparent px-7 py-4 text-base font-medium leading-none text-white border border-white/70 inline-flex items-center justify-center hover:bg-white/10 hover:border-white transition duration-300 ease-out-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600 sm:w-auto"
-        >
-          <span>{ctaContent.secondaryCta}</span>
-        </a>
-      </div>
-    </>
-  );
+        <path
+          d="M0,200 C200,300 400,100 600,200 C800,300 1000,100 1440,200 L1440,400 L0,400 Z"
+          fill="white"
+          fillOpacity={0.08}
+        />
+        <path
+          d="M0,300 C300,200 600,350 900,250 C1200,150 1440,300 1440,300 L1440,400 L0,400 Z"
+          fill="white"
+          fillOpacity={0.06}
+        />
+      </svg>
+    </div>
+  )
+}
+
+function CTAPrimary({ prefersReducedMotion }: { prefersReducedMotion: boolean }) {
+  const buttonVariants = getButtonVariants(prefersReducedMotion)
+  const transition = getButtonTransition()
+
+  return (
+    <motion.a
+      href="#start"
+      className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-base font-medium text-primary-700 shadow-cta transition-colors duration-base hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      style={{ minHeight: "44px", minWidth: "44px" }}
+      initial="hidden"
+      animate="visible"
+      variants={buttonVariants}
+      transition={transition}
+    >
+      {ctaContent.primaryCta}
+      <ArrowRight size={18} />
+    </motion.a>
+  )
+}
+
+function CTASecondary({ prefersReducedMotion }: { prefersReducedMotion: boolean }) {
+  const buttonVariants = getButtonVariants(prefersReducedMotion)
+  const transition = getButtonTransition()
+
+  return (
+    <motion.a
+      href="#contact"
+      className="inline-flex items-center justify-center rounded-full border border-white/30 px-6 py-3 text-base font-medium text-white transition-opacity duration-base hover:bg-white/10 hover:border-white/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      style={{ minHeight: "44px", minWidth: "44px" }}
+      initial="hidden"
+      animate="visible"
+      variants={buttonVariants}
+      transition={transition}
+    >
+      {ctaContent.secondaryCta}
+    </motion.a>
+  )
 }
