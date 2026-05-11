@@ -105,7 +105,7 @@ export default function TopNav() {
           </a>
         </motion.div>
 
-        <nav className="hidden md:flex flex-1 flex justify-center items-center" aria-label="Primary">
+        <nav className="hidden lg:flex flex-1 flex justify-center items-center" aria-label="Primary">
           <div className="flex items-center gap-8 lg:gap-10">
             {topNavContent.nav.map((item) => (
               <NavItem key={item.label} item={item} scrolled={scrolled} />
@@ -113,7 +113,7 @@ export default function TopNav() {
           </div>
         </nav>
 
-        <div className="hidden md:flex items-center gap-3 z-50">
+        <div className="hidden lg:flex items-center gap-3 z-50">
           <GhostLink href="#" scrolled={scrolled}>
             {topNavContent.signIn}
           </GhostLink>
@@ -126,7 +126,7 @@ export default function TopNav() {
         </div>
 
         <button
-          className="md:hidden h-11 w-11 flex items-center justify-center rounded-lg text-ink-700 hover:text-ink-900 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+          className="lg:hidden h-11 w-11 flex items-center justify-center rounded-lg text-ink-700 hover:text-ink-900 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           aria-label={topNavContent.mobileMenuLabel}
           onClick={() => setMobileOpen(true)}
         >
@@ -295,7 +295,7 @@ function PrimaryPill({ href, children, className, style }: PrimaryPillProps) {
   return (
     <CtaPillBase
       href={href}
-      className={`bg-primary-500 text-white shadow-cta ${isHovered ? "bg-primary-600" : ""} focus-visible:ring-primary-500 ${className || ""}`}
+      className={`bg-primary-600 text-white shadow-cta ${isHovered ? "bg-primary-700" : ""} focus-visible:ring-primary-500 ${className || ""}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={style}

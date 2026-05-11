@@ -27,7 +27,7 @@ This spec resolves every Designer-owned open question in the ADR. Engineer consu
 | Layout | `flex items-center justify-between h-full` |
 | Children order | brand cluster → center nav → CTA cluster (desktop) · brand cluster → mobile menu button (mobile) |
 
-### Three-region grid (desktop, ≥`md`)
+### Three-region grid (desktop, ≥`lg`)
 
 The flex row resolves to three logical zones:
 
@@ -39,7 +39,7 @@ The flex row resolves to three logical zones:
 - **Center nav** — absolute-centered visually via `flex-1 flex justify-center`. This keeps it dead-center even when the brand and CTA clusters have unequal widths.
 - **CTA cluster** — fixed natural width, `flex items-center gap-3`.
 
-### Mobile (<`md`)
+### Mobile (<`lg`)
 
 - Brand left, mobile menu button right.
 - No center nav, no CTA cluster.
@@ -51,8 +51,8 @@ The flex row resolves to three logical zones:
 |---|---|---|
 | default | <640px | Mobile layout. Drawer width `w-[85vw]`. |
 | `sm` | ≥640px | Mobile layout. Drawer width `w-[85vw]`. |
-| `md` | ≥768px | Desktop layout (center nav + CTA cluster appear). Drawer no longer relevant. |
-| `lg` | ≥1024px | `lg:px-8` kicks in. |
+| `md` | ≥768px | Mobile layout. Drawer width `w-[85vw]`. |
+| `lg` | ≥1024px | Desktop layout (center nav + CTA cluster appear). `lg:px-8` kicks in. |
 
 Drawer width transition: `w-[min(360px,85vw)]` for the entire mobile range. Resolved via the `min()` clamp; no breakpoint change needed.
 
@@ -127,7 +127,7 @@ No display-* tokens in this section (those are reserved for headlines).
 |---|---|---|---|---|---|---|
 | Sign in (ghost) | transparent | `text-ink-700` | none | transparent | `text-ink-900` | none |
 | Contact sales (outlined) | transparent | `text-ink-900` | `border border-ink-200` | `bg-ink-900` | `text-white` | `border-ink-900` |
-| Start for free (primary) | `bg-primary-500` | `text-white` | none | `bg-primary-600` | `text-white` | none |
+| Start for free (primary) | `bg-primary-600` | `text-white` | none | `bg-primary-700` | `text-white` | none |
 
 The primary pill carries `shadow-cta` at rest and a deeper variant on hover (see §5 Motion).
 
@@ -135,8 +135,8 @@ The primary pill carries `shadow-cta` at rest and a deeper variant on hover (see
 
 | Pairing | Computed ratio | Standard | Pass? |
 |---|---|---|---|
-| `text-white` on `bg-primary-500` (#FFFFFF on #5B6CFF) | 4.66:1 | AA large text 3:1, AA body 4.5:1 | yes |
-| `text-white` on `bg-primary-600` (#FFFFFF on #4A58E0) | 5.79:1 | AA body 4.5:1 | yes |
+| `text-white` on `bg-primary-500` (#FFFFFF on #5B6CFF) | 4.17:1 | AA body 4.5:1 | **no** — do not use for body-size text |
+| `text-white` on `bg-primary-600` (#FFFFFF on #4A58E0) | 5.50:1 | AA body 4.5:1 | yes — primary pill resting bg |
 | `text-ink-900` on `bg-white/80` (assume blend ~#FCFCFD) | 17.5:1 | — | yes |
 | `text-ink-900` on `bg-ink-900` (white-on-dark for hover Contact Sales) | 17.4:1 (inverted: `text-white` on `bg-ink-900`) | AA body 4.5:1 | yes |
 | `text-ink-700` on hero gradient (`primary-50`-tinted) | ~10:1 | AA body 4.5:1 | yes |
@@ -400,7 +400,7 @@ No social icons (`Github`, `Twitter`, `Linkedin`, etc.) are needed in this secti
 | Q5 | Underline geometry | 1.5px `bg-ink-900`, label-width, `origin-left`, 2px below baseline. |
 | Q6 | CTA pill geometry | All `h-9`, `rounded-full`, `px-4`. `gap-3` between pills. `shadow-cta` on primary. |
 | Q7 | Arrow nudge | Always visible at rest; translate-x 2px on hover, 180ms. |
-| Q8 | Mobile breakpoint | Tailwind `md` (768px). No adjustment. |
+| Q8 | Desktop breakpoint | Tailwind `lg` (1024px). Three-region grid activates at `lg`; `md`–`lg` range uses mobile/drawer layout. |
 | Q9 | Drawer panel | `w-[min(360px,85vw)]`, `rounded-l-2xl`, opaque white, `border-l border-ink-100`, `shadow-card`, `px-6 py-6`. |
 | Q10 | Drawer enter/exit | Slide+fade enter 320ms, slide exit 220ms; scrim opacity 180/160ms. Brand+close row static, not sticky. |
 | Q11 | Backdrop transition duration | 200ms `ease-out-soft`. |
