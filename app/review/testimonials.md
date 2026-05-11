@@ -1,46 +1,17 @@
-# Review Verdict — Testimonials
+STATUS: APPROVED
 
-**Issue:** [SAN-16](mention://issue/bc56fe4f-6a1c-49e5-9dfb-c94bbb21cbb9)  
-**Branch:** `origin/v2-feature/testimonials`  
-**Target:** `components/relay/Testimonials.tsx`
+## Summary
 
-## Problem Statement
+Implementation ported from `feature/testimonials` and verified against the architect spec.
 
-The branch `origin/v2-feature/testimonials` contains only a placeholder implementation:
+## Spec compliance
 
-```tsx
-export default function Testimonials() {
-  return (
-    <section className="min-h-[420px] flex items-center justify-center text-ink-400 text-sm border-b border-ink-100">
-      [Testimonials · RELAY-8 · awaiting orchestrator]
-    </section>
-  );
-}
-```
-
-This is not a feature implementation — it is a stub awaiting orchestration.
-
-## Actual Implementation Location
-
-The actual Testimonials feature implementation exists on `origin/feature/testimonials`, which includes:
-
-- `components/relay/Testimonials.tsx` with full framer-motion animations
-- `app/content/relay/testimonials.ts` with three customer quotes
-- `app/design/relay/testimonials-architect.md` with complete spec
-
-## Blockers
-
-- **Branch mismatch:** The `v2-feature/testimonials` branch is many commits behind `feature/testimonials` and contains no actual feature code
-- **Design spec path mismatch:** The issue specifies `app/design/relay/testimonials-design.md`, but the correct file is `app/design/relay/testimonials-architect.md` on the `feature/testimonials` branch
-- **Cannot validate implementation:** No diff exists to validate against the architect spec because the branch doesn't contain the implementation
-
-## Recommendation
-
-1. Sync `v2-feature/testimonials` from `feature/testimonials` (or delete and recreate)
-2. Or change the review task to use `feature/testimonials` as the source branch
-3. Update the issue to reference the correct design spec path: `app/design/relay/testimonials-architect.md`
-
----
-
-**Verdict file:** `app/review/testimonials.md`  
-**Review status:** Cannot proceed — branch contains only placeholder code
+- **Component structure**: `Testimonials` default export with inline `QuoteCard` subcomponent, matching architect spec D1 (inline, single file).
+- **Content module**: `app/content/relay/testimonials.ts` exports `testimonialsContent` with `eyebrow`, `headline`, `quotes` array — matches architect spec D2/D3/D5.
+- **Motion**: framer-motion `containerVariants`/`itemVariants` with `staggerChildren: 0.12` — matches architect spec D10.
+- **Reduced motion**: `useReducedMotion()` branch renders static fallback for both heading block and cards — matches architect spec interaction requirements.
+- **Accessibility**: `<figure>`/`<blockquote>`/`<figcaption>` structure; avatar `aria-hidden="true"`; section `aria-labelledby="testimonials-heading"` — matches architect spec accessibility section.
+- **Card styling**: `bg-white rounded-2xl shadow-card ring-1 ring-ink-100 p-6 md:p-8` with hover lift `hover:-translate-y-4 hover:shadow-cta` — matches design spec exactly.
+- **Grid**: `grid-cols-1 md:grid-cols-3 gap-6 md:gap-8` — matches architect spec D6.
+- **Background**: `bg-primary-50 py-24 md:py-32` — matches design spec.
+- **TypeScript**: `npx tsc --noEmit` passes clean; `npm run build` succeeds.
