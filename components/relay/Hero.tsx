@@ -94,8 +94,8 @@ export default function Hero() {
     <section className="relative w-full bg-white">
       <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,_var(--tw-gradient-stops))] from-[#F4F5FF] via-white to-white pointer-events-none" />
 
-      <div className="relative max-w-[1280px] mx-auto px-8 lg:px-6">
-        <div className="grid lg:grid-cols-5 gap-x-12 lg:gap-x-16 items-center py-24 lg:py-20 md:py-16 sm:py-14">
+      <div className="relative max-w-[1280px] mx-auto px-5 md:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-5 gap-x-12 lg:gap-x-16 items-center pt-24 lg:pt-20 md:pt-16 sm:pt-14 pb-20 lg:pb-16 md:pb-12 sm:pb-12">
 
           <div className="lg:col-span-3 lg:order-1 order-1 space-y-6 md:space-y-5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white ring-1 ring-ink-200 shadow-card">
@@ -110,7 +110,7 @@ export default function Hero() {
             <motion.h1
               id="hero-headline"
               className="text-display-xl lg:text-display-xl md:text-display-lg sm:text-display-md text-ink-900 max-w-2xl text-balance font-sans"
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 0 }}
               animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0, 0, 0.2, 1] }}
             >
@@ -119,7 +119,7 @@ export default function Hero() {
 
             <motion.p
               className="text-[1.125rem] lg:text-[1.125rem] md:text-base text-ink-600 max-w-prose max-w-[520px] leading-7 lg:leading-7 md:leading-6 font-normal"
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 0 }}
               animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0, 0, 0.2, 1], delay: 0.08 }}
             >
@@ -127,14 +127,14 @@ export default function Hero() {
             </motion.p>
 
             <motion.div
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:mt-10 md:mt-10 sm:mt-8"
-              initial={{ opacity: 0, y: 12 }}
+              className="flex flex-col sm:flex-row gap-4 sm:gap-3 lg:mt-10 md:mt-10 sm:mt-8"
+              initial={{ opacity: 0, y: 0 }}
               animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0, 0, 0.2, 1], delay: 0.16 }}
             >
               <Link
                 href="#"
-                className="group relative inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold shadow-cta transition-[background-color,transform,box-shadow] duration-300 ease-[0,0,0.2,1]"
+                className="group relative inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-primary-500 hover:bg-primary-600 text-white text-sm font-bold shadow-cta transition-[background-color,transform,box-shadow] duration-300 ease-[0,0,0.2,1]"
                 onClick={(e) => e.preventDefault()}
               >
                 {heroContent.primaryCta}
