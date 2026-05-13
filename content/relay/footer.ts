@@ -5,10 +5,21 @@ export const footerContent = {
     logo: "Zap",
   },
   social: [
-    { name: "GitHub", url: "#", label: "GitHub" },
-    { name: "X", url: "#", label: "X" },
-    { name: "LinkedIn", url: "#", label: "LinkedIn" },
-    { name: "YouTube", url: "#", label: "YouTube" },
+    { name: "GitHub", url: "#", label: "Relay on GitHub" },
+    { name: "X", url: "#", label: "Relay on X" },
+    { name: "LinkedIn", url: "#", label: "Relay on LinkedIn" },
+    { name: "YouTube", url: "#", label: "Relay on YouTube" },
+  ],
+  brandMiscLinks: [
+    { name: "Careers", url: "#" },
+    { name: "Org", url: "#" },
+    { name: "Press", url: "#" },
+    { name: "Investors", url: "#" },
+    { name: "Legal", url: "#" },
+    { name: "Privacy", url: "#" },
+    { name: "Security", url: "#" },
+    { name: "Sitemap", url: "#" },
+    { name: "LLMs", url: "#" },
   ],
   columns: [
     {
@@ -20,6 +31,7 @@ export const footerContent = {
         { name: "Messaging", url: "#" },
         { name: "Video", url: "#" },
       ],
+      viewAllCta: { name: "All Products", url: "#" },
     },
     {
       title: "Developers",
@@ -30,6 +42,7 @@ export const footerContent = {
         { name: "Changelog", url: "#" },
         { name: "GitHub", url: "#" },
       ],
+      viewAllCta: { name: "All Developer Resources", url: "#" },
     },
     {
       title: "Company",
@@ -40,6 +53,7 @@ export const footerContent = {
         { name: "Careers", url: "#" },
         { name: "Contact", url: "#" },
       ],
+      viewAllCta: { name: "All Company Info", url: "#" },
     },
     {
       title: "Resources",
@@ -50,9 +64,12 @@ export const footerContent = {
         { name: "Webinars", url: "#" },
         { name: "Support", url: "#" },
       ],
+      viewAllCta: { name: "All Resources", url: "#" },
     },
   ],
-  copyright: "© 2026 Relay, Inc.",
+  copyright: "© 2026 Relay, Inc. All rights reserved.",
+  ccpaNotice:
+    "Do not sell or share my personal information. For privacy inquiries, contact privacy@relay.io.",
   bottomLinks: [
     { name: "Privacy", url: "#" },
     { name: "Terms", url: "#" },
