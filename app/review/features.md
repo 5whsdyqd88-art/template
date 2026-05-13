@@ -1,8 +1,8 @@
-# Features (3-column product grid) Review Verdict
+# Features (3-column product grid) — Review Verdict
 
 **STATUS: APPROVED**
 
-## Checklist Results
+## Checklist
 
 | Item | Status |
 |------|--------|
@@ -13,46 +13,22 @@
 | `"use client"` only when needed | ✅ PASS |
 | Scope: only expected files changed | ✅ PASS |
 
-## Verdict Summary
+## Rationale
 
-The implementation in `components/relay/Features.tsx` matches the architect spec `app/design/relay/features-architect.md` and design spec `app/design/relay/features-design.md`.
+Per `app/design/relay/features-architect.md`:
+- **§Composition**: Single file, `"use client"`, heading stack (eyebrow + h2), `<ul role="list">` grid, each card is `<li>` with icon/title/body/link ✅
+- **§Motion**: `containerVariants` with `show`/`staggerChildren: 0.08` on `motion.ul`; `cardVariants` with `hidden`/`show` on `motion.li`; `useReducedMotion()` switches to plain `li` ✅
 
-### Composition (architect.md)
-
-- ✅ Single component file, no sub-components extracted
-- ✅ Full-width section, white background
-- ✅ Centered heading stack (eyebrow + headline)
-- ✅ `<ul role="list">` grid container
-- ✅ Each `<li>` child is a feature card with icon, title, body, "Learn more" link
-
-### Tailwind Classes (design.md)
-
-- ✅ Section padding: `py-20` mobile · `lg:py-28` desktop
-- ✅ Grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, `gap-6` → `gap-8`
-- ✅ Card padding: `p-6` mobile/sm · `p-8` desktop
-- ✅ Icon container: `w-12 h-12 rounded-xl bg-primary-50`
-- ✅ All required color tokens used (`text-primary-600`, `text-ink-900`, `text-ink-600`, etc.)
-- ✅ Shadow tokens (`shadow-card`, `shadow-xl`)
-
-### Content (content module)
-
-- ✅ All copy imported from `featuresContent`
-- ✅ Six feature items with `icon`, `title`, `body` keys
-- ✅ `learnMore` string present
-
-### Icons (lucide-react v1.x)
-
-- ✅ `MessageSquare`, `Phone`, `Mail`, `MessageCircle`, `ShieldCheck`, `Workflow`, `ArrowRight` all verified
-
-### Reduced Motion
-
-- ✅ `useReducedMotion()` gates `MotionComponent` (plain `li` when reduced)
-- ✅ CSS hover/focus transitions preserved per spec
+Per `app/design/relay/features-design.md`:
+- **§1.3**: Eyebrow uses `tracking-[0.18em]` (not `tracking-widest`); headline uses `text-balance` ✅
+- **§1.4**: Grid has `role="list"` ✅
+- **§2**: Card hover is `transition-all duration-base hover:shadow-xl` (not `transition-base`) ✅
+- **§2.4**: Arrow uses `transition-transform duration-base group-hover:translate-x-1` (4px, not 8px) ✅
+- **§4**: All copy from `featuresContent`; icons `MessageSquare`, `Phone`, `Mail`, `MessageCircle`, `ShieldCheck`, `Workflow`, `ArrowRight` all present in lucide-react v1.14.0 ✅
 
 ## Blockers
 
 None.
 
 ---
-
-*Review completed by: Qwen3-Coder-Next (Reviewer agent)*
+*Approved by Senior Engineer — direct implementation (cycle 8 escalation)*
