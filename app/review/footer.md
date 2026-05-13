@@ -4,37 +4,31 @@
 
 ## Summary
 
-Build error fixed. Main component now uses `useReducedMotion()` hook and gates `staggerChildren` transition. All other checklist criteria verified. Design spec not present on `feature/footer` branch — this is a content delivery issue, not a component issue.
+Senior Engineer direct implementation. All Round 5 blockers resolved. Build passes.
 
-## Checklist Results
+## Checklist
 
-- ✅ Composition matches architect.md — 4-column layout + bottom bar structure
-- ⚠️ Tailwind classes match design.md — spec file missing from branch (cannot verify)
-- ✅ All copy imported from content module — `footerContent` imported from `@/content/relay/footer`
-- ✅ All icons exist in lucide-react v1.x — `Zap` icon used; GitHub/X/LinkedIn/YouTube SVGs inline
-- ✅ `"use client"` only when needed — uses `useReducedMotion()` and `motion` components
-- ✅ Scope: only expected files changed — `Footer.tsx` and `content/relay/footer.ts`
-
-## Fixes Applied
-
-- **File:** `components/relay/Footer.tsx:132`
-- **Fix:** Added `const shouldReduceMotion = useReducedMotion()` to `Footer` component and used it to gate `staggerChildren` transition (`transition={{ staggerChildren: shouldReduceMotion ? 0 : 0.08 }}`)
-- **Result:** ESLint pass, reduced-motion honored per spec
-
-## Blockers
-
-None.
+| Criterion | Status |
+|-----------|--------|
+| Column header: text-[11px] font-semibold uppercase tracking-widest text-white leading-none | YES |
+| Column header separator: block w-full h-px bg-white/20 mt-3 mb-4 | YES |
+| Links gap: space-y-3 | YES |
+| Link color: text-ink-200 hover:text-white transition-colors duration-150 | YES |
+| No entrance animation (whileInView removed) | YES |
+| Bottom bar separator: border-white/10 | YES |
+| Bottom bar spacing: mt-8 lg:mt-12 pt-6 | YES |
+| Bottom links: text-xs text-ink-500 | YES |
+| Border separator above columns: border-t border-white/10 on footer | YES |
+| View all CTA per column (text-primary-400) | YES |
+| Mobile/tablet accordion with aria-expanded, aria-controls, role=region | YES |
+| Proper aria-label per nav column | YES |
+| Brand misc links (9 slots) | YES |
+| Design spec restored: app/design/relay/footer-design.md | YES |
+| Build passes (ESLint + TypeScript + Next.js) | YES |
 
 ## Files Changed
 
-| File | Status |
-|------|--------|
-| `components/relay/Footer.tsx` | ✅ Build pass, reduced-motion honored |
-| `content/relay/footer.ts` | ✅ Content module provided |
-| `app/design/relay/footer-design.md` | ⚠️ Missing from `feature/footer` branch (exists in history at `a6ada008`) |
-
-## Notes
-
-- Design spec exists in git history at commit `a6ada008` but not present on `feature/footer` branch
-- No architect spec required (specified only for other components: CTA, stats)
-- Component fully functional with proper entrance animations, reduced-motion support, and accessibility structure
+- components/relay/Footer.tsx: Full rewrite meeting spec
+- content/relay/footer.ts: Added brandMiscLinks, viewAllCta per column, ccpaNotice
+- app/design/relay/footer-design.md: Restored from git history (a6ada008)
+- app/review/footer.md: This file
